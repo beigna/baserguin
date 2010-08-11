@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from lib.editormm import Schedule
+from lib.editormm import Dispatch
 from lib.constants import STRING, NUMBER, DATETIME_FORMAT
 
 from yaml import safe_load, safe_dump
@@ -8,7 +8,7 @@ from uuid import uuid1
 import datetime
 
 
-class SnoopySchedule(Schedule):
+class SnoopyDispatch(Dispatch):
     __slots__ = (
         '_since',
         '_until',
@@ -19,7 +19,7 @@ class SnoopySchedule(Schedule):
 
     def __init__(self, *args, **kwargs):
         """
-        >>> a = Schedule(id=1, partner_id=56)
+        >>> a = Dispatch(id=1, partner_id=56)
         >>> b = SnoopySchedule(schedule=a.as_dict())
         >>> b.id
         1

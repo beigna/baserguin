@@ -125,9 +125,9 @@ class BasicHttp(object):
         self._curl.perform()
         self._status = self._curl.getinfo(pycurl.HTTP_CODE)
 
-        if self._status != wanted_status:
-            raise InvalidResponse('Wanted Status: %d Response Status: %d' % (
-                wanted_status, self._status))
+        #if self._status != wanted_status:
+        #    raise InvalidResponse('Wanted Status: %d Response Status: %d' % (
+        #        wanted_status, self._status))
 
         data = {
             'status': self._status,

@@ -11,6 +11,8 @@ import simplejson
 import os
 import sys
 
+from lib.logger import get_logger
+
 class EditorMMError(Exception): pass
 class FetchingSchedulesError(EditorMMError): pass
 
@@ -38,8 +40,9 @@ class EditorMM(object):
         """
         Test
 
-        >>> a = EditorMM('logger')
-        >>> a.load_settings()
+        >d>> log = get_logger('test-case')
+        >d>> a = EditorMM(log)
+        >d>> a.load_settings()
         """
 
         config = ConfigParser()
@@ -48,89 +51,97 @@ class EditorMM(object):
         self._schedules_ws = self._parse_config(config, 'Schedules')
         self._extras_ws = self._parse_config(config, 'Extras')
 
-    def get_extras(self, brand_profile, since, until):
-        """
-        Test
+    def _get_dispatches(self, brand_profile, since, until, ws_data, is_extra):
+        try:
+            if is_extra:
+                between = {'since': since, 'until': until}
+                url = '%s?%s' % (ws_data['url'], urlencode(between))
 
-        >>> a = EditorMM('logger')
+                self._log.debug('Extra URL: %s' % (url))
+
+            else:
+                brand_profile['since'] = since
+                brand_profile['until'] = until
+                brand_profile['is_extra'] = 0
+                url = '%s?%s' % (ws_data['url'], urlencode(brand_profile))
+
+                self._log.debug('Schedule URL: %s' % (url))
+
+            http = BasicHttp(url)
+            http.authenticate(ws_data['username'], ws_data['password'])
+
+            data = http.request(headers={
+                'Accept': self._content_type[ws_data['format']]}
+            )
+
+            if ws_data['format'] == 'yaml':
+                dispatches_data = yaml.load(data['body'])
+
+            elif ws_data['format'] == 'json':
+                dispatches_data = simplejson.loads(data['body'])
+
+            dispatches_list = []
+
+            for dispatch_data in dispatches_data:
+                dispatch = Dispatch()
+                dispatch.carrier_id = brand_profile['brand']
+                dispatch.channel_id = dispatch_data['channel_id']
+                dispatch.channel_name = dispatch_data['channel_name']
+                dispatch.distribution_channel = \
+                    brand_profile['distribution_channel']
+                dispatch.is_extra = is_extra
+                dispatch.id = dispatch_data['id']
+                dispatch.package_id = dispatch_data['package_id']
+                dispatch.package_name = dispatch_data['package_name']
+                dispatch.partner_id = brand_profile['partner_id']
+                dispatch.services = dispatch_data['services']
+
+                if is_extra:
+                    dispatch.news_id = dispatch_data['news_id']
+                else:
+                    # TODO modificar algún día el WS para que
+                    # no lo mande como objeto
+                    st = dispatch_data['send_time']
+                    st = '%02d:%02d:%02d' % (st.hour, st.minute, st.second)
+                    dispatch.send_time = st
+                    #
+
+                dispatches_list.append(dispatch)
+
+            return dispatches_list
+
+        except:
+            self._log.exception('Errrrro')
+            raise FetchingSchedulesError('aaa')
+
+    def get_dispatches(self, brand_profile, since, until):
+        """
+        >>> log = get_logger('testingggg')
+        >>> a = EditorMM(log)
         >>> a.load_settings()
-        >>> a.get_extras('', '', '')
-        """
-
-        between = {'since': since, 'until': until}
-        url = '%s?%s' % (self._extras_ws['url'], urlencode(between))
-
-        print url
-
-    def get_schedules(self, brand_profile, since, until):
-        """
-        Test
-
-        >>> a = EditorMM('logger')
-        >>> a.load_settings()
-        >>> response = a.get_schedules({'band': '00000004', \
+        >>> response = a.get_dispatches({'brand': '00000004', \
         'partner_id': 4004, 'distribution_channel': 1}, \
-        since='2010-07-22 00:00:00', until='2010-07-22 23:00:00')
-        Traceback (most recent call last):
-        ...
-        InvalidResponse: Wanted Status: 200 Response Status: 400
-
-        >>> a = EditorMM('logger')
-        >>> a.load_settings()
-        >>> response = a.get_schedules({'brand': '00000004', \
-        'partner_id': 4004, 'distribution_channel': 1}, \
-        since='2010-07-22 00:00:00', until='2010-07-22 23:00:00')
-        >>> isinstance(response[0], Schedule)
+        since='2010-08-11 00:00:00', until='2010-08-11 23:00:00')
+        >>> isinstance(response[0], Dispatch)
         True
         """
 
-        try:
-            brand_profile['since'] = since
-            brand_profile['until'] = until
-            brand_profile['is_extra'] = 0
+        dispatches = []
 
-            url = '%s?%s' % (self._schedules_ws['url'], urlencode(brand_profile))
+        # extras
+        extras = self._get_dispatches(brand_profile, since, until,
+            self._extras_ws, is_extra=True)
 
-            http = BasicHttp(url)
-            http.authenticate(self._schedules_ws['username'],
-                self._schedules_ws['password'])
+        # schedules
+        schedules = self._get_dispatches(brand_profile, since, until,
+            self._schedules_ws, is_extra=False)
 
-            data = http.request(headers={
-                'Accept': self._content_type[self._schedules_ws['format']]}
-            )
+        dispatches.extend(extras)
+        dispatches.extend(schedules)
 
-            yaml_schedules = yaml.load(data['body'])
-            schedules = []
+        return schedules
 
-            for yaml_schedule in yaml_schedules:
-                schedule = Schedule()
-                schedule.carrier_id = brand_profile['brand']
-                schedule.channel_id = yaml_schedule['channel_id']
-                schedule.channel_name = yaml_schedule['channel_name']
-                schedule.distribution_channel = \
-                    brand_profile['distribution_channel']
-                schedule.id = yaml_schedule['id']
-                schedule.is_extra = bool(yaml_schedule['is_extra'])
-                schedule.package_id = yaml_schedule['package_id']
-                schedule.package_name = yaml_schedule['package_name']
-                schedule.partner_id = brand_profile['partner_id']
-
-                # TODO modificar algún día el WS para que no lo mande como objeto
-                st = yaml_schedule['send_time']
-                st = '%02d:%02d:%02d' % (st.hour, st.minute, st.second)
-                schedule.send_time = st
-                #
-                schedule.services = yaml_schedule['services']
-
-                schedules.append(schedule)
-
-            return schedules
-
-        except:
-            self._log.exception('Failed while fetching dispatches scheduled.')
-            raise FetchingSchedulesError()
-
-class Schedule(object):
+class Dispatch(object):
     __slots__ = (
         '_carrier_id',
         '_channel_id',
@@ -212,14 +223,7 @@ class Schedule(object):
             self.services = kwargs.get('services')
 
     def load_yaml(self, data):
-        schedules = []
-
-        data = yaml.safe_load(data)
-
-        for schedule in data:
-            obj_schedule = Schedule()
-
-            schedules.append()
+        pass
 
     # Getters & Setters
     def get_carrier_id(self):

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from lib.editormm import EditorMM, Schedule
+from lib.editormm import EditorMM, Dispatch
 from lib.scheduler import Scheduler
-from lib.snoopy_types import SnoopySchedule
+from lib.snoopy_types import SnoopyDisptch
 
 from lib.logger import get_logger
 from lib.pidlocks import lock_pid
@@ -54,21 +54,18 @@ try:
             brand_profile['partner_id'],
             brand_profile['distribution_channel']))
 
-        extra_dispatches = editormm.get_extras()
-
-        scheduled_dispatches = editormm.get_schedules(brand_profile,
+        dispatches = editormm.get_dispatches(brand_profile,
             scheduler.last_activity, scheduler.start_time)
 
-        for dispatch in scheduled_dispatches:
+        for dispatch in dispatches:
             if scheduler.is_schedule_in_history(dispatch):
-                log.warning('Schedule ID %d has been already processed.' % (
-                    dispatch.id))
+                log.warning('Dispatch has been already processed.')
 
             else:
-                log.info('Saving Schedule ID %d ...' % (dispatch.id))
+                log.info('Saving dispatch ...')
                 try:
                     schedule_dispatch = \
-                        SnoopySchedule(schedule=dispatch.as_dict())
+                        SnoopyDispatch(schedule=dispatch.as_dict())
 
                     schedule_dispatch.since = scheduler.last_activity
                     schedule_dispatch.under = scheduler.start_time
