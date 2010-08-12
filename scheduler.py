@@ -3,46 +3,39 @@
 
 from lib.editormm import EditorMM, Dispatch
 from lib.scheduler import Scheduler
-from lib.snoopy_types import SnoopyDisptch
+from lib.snoopy_types import SnoopyDispatch
 
 from lib.logger import get_logger
 from lib.pidlocks import lock_pid
 
-class SnoopySchedulerError(Exception):
-    pass
+class SnoopySchedulerError(Exception): pass
+class PidFileExists(Exception): pass
 
 log = get_logger('snoopy-scheduler')
 log.info('Initializing...')
 
 scheduler = Scheduler(log)
-try:
-    scheduler.load_settings()
-except:
-    log.exception('Failed while load settings.')
-    raise SnoopySchedulerError('mama mia!')
+scheduler.load_settings()
 
 try:
     if lock_pid(scheduler.pid_path) == False:
-        raise SnoopySchedulerError('mama mia!')
-except:
-    log.exception('Pid file exists. The schedules is already running?')
-    raise SnoopySchedulerError('mama mia!')
+        raise PidFileExists('Pid file exists. The scheduler is running?')
 
-try:
-    schedules.load_brands_profiles()
-    schedules.load_custom_partners()
-except:
-    log.exception('Failed while load brands or custom partners.')
-    raise SnoopySchedulerError('mama mia!')
+except Exception, e:
+    log.exception('Error locking pid.')
+    raise e
+
+scheduler.load_brands_profiles()
+scheduler.load_custom_partners()
 
 # LESTO
 
-try:
-    scheduler.load_last_activity()
-    scheduler.load_history()
+scheduler.load_last_activity()
+scheduler.load_history()
 
+try:
     log.info('Looking for schedules between %s and %s' % (
-        scheduler.last_activity, scheduler.start_time)
+        scheduler.last_activity, scheduler.start_time))
 
     editormm = EditorMM()
     editormm.load_settings()

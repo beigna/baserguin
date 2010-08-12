@@ -26,6 +26,7 @@ class Scheduler(basic_daemon_trucho):
         '_custom_partners',
         '_last_activity',
         '_start_time',
+        '_history',
 
         '_pid_path',
         '_last_activity_path',
@@ -42,86 +43,97 @@ class Scheduler(basic_daemon_trucho):
         self._log = logger
         self._start_time = datetime.utcnow()
 
-    def load_settings(self):
-        """
-        >>> a = Scheduler('logger')
-        >>> a.load_settings()
-        """
-
-        config = ConfigParser()
-        config.read('%s/conf/scheduler.conf' % (os.path.abspath(sys.path[0])))
-
-        self._pid_path = config.get('General', 'pid')
-        self._last_activity_path = config.get('General', 'LastActivity')
-        self._last_status_path = config.get('General', 'LastStatus')
-        self._dispatches_history_path = \
-                            config.get('General', 'DispatchesHistory')
-        self._dispatches_outlet_path = \
-                            config.get('General', 'DispatchesOutlet')
-        self._stats_outlet_path = config.get('General', 'StatsOutlet')
-        self._brands_profiles_path = config.get('General', 'BrandsProfiles')
-        self._custom_partners_path = config.get('General', 'CustomPartners')
-        self._basedir = config.get('General', 'BaseDir')
-
-    def load_brands_profiles(self):
-        self._brands_profiles = []
-
-        files_to_load = glob.glob('%s/*.conf' % self._brands_profiles_path)
-
-        for file_to_load in files_to_load:
+    def load_settings(self): # has test case
+        try:
             config = ConfigParser()
-            config.read(file_to_load)
+            config.read('%s/conf/scheduler.conf' %
+                (os.path.abspath(sys.path[0])))
 
-            brand_id = config.get('General', 'BrandId')
-            partners_sms = config.get('Sms', 'Partners')
-            partners_mms = config.get('Mms', 'Partners')
-            partners_wap = config.get('Wap', 'Partners')
+            self._pid_path = config.get('General', 'pid')
+            self._last_activity_path = config.get('General', 'LastActivity')
+            self._last_status_path = config.get('General', 'LastStatus')
+            self._dispatches_history_path = \
+                config.get('General', 'DispatchesHistory')
+            self._dispatches_outlet_path = \
+                config.get('General', 'DispatchesOutlet')
+            self._stats_outlet_path = config.get('General', 'StatsOutlet')
+            self._brands_profiles_path = config.get('General', 'BrandsProfiles')
+            self._custom_partners_path = config.get('General', 'CustomPartners')
+            self._basedir = config.get('General', 'BaseDir')
 
-            for partner in partners_sms.split(','):
-                if partner.isdigit():
-                    # 1 = sms distribution_channel
-                    self._brands_profiles.append({
-                        'brand': brand_id,
-                        'partner_id': int(partner),
-                        'distribution_channel': 1
-                    })
+        except Exception, e:
+            self._log.exception('Error load settings.')
+            raise e
 
-            for partner in partners_mms.split(','):
-                if partner.isdigit():
-                    # 3 = mms distribution_channel
-                    self._brands_profiles.append({
-                        'brand': brand_id,
-                        'partner_id': int(partner),
-                        'distribution_channel': 3
-                    })
+    def load_brands_profiles(self): # has test case
+        try:
+            self._brands_profiles = []
 
-            for partner in partners_wap.split(','):
-                if partner.isdigit():
-                    # 5 = wap distribution_channel
-                    self._brands_profiles.append({
-                        'brand': brand_id,
-                        'partner_id': int(partner),
-                        'distribution_channel': 5
-                    })
+            files_to_load = glob.glob('%s/*.conf' % self._brands_profiles_path)
 
-    def load_custom_partners(self):
-        config = ConfigParser()
-        config.read('%s/custom_partners.conf' % self._custom_partners_path)
+            for file_to_load in files_to_load:
+                config = ConfigParser()
+                config.read(file_to_load)
 
-        self._custom_partners = {}
+                brand_id = config.get('General', 'BrandId')
+                partners_sms = config.get('Sms', 'Partners')
+                partners_mms = config.get('Mms', 'Partners')
+                partners_wap = config.get('Wap', 'Partners')
 
-        for section in config.sections():
-            partners = config.get(section, 'Partners')
-            for partner in partners.split(','):
-                partner = int(partner)
-                self._custom_partners[partner] = section
+                for partner in partners_sms.split(','):
+                    if partner.isdigit():
+                        # 1 = sms distribution_channel
+                        self._brands_profiles.append({
+                            'brand': brand_id,
+                            'partner_id': int(partner),
+                            'distribution_channel': 1
+                        })
+
+                for partner in partners_mms.split(','):
+                    if partner.isdigit():
+                        # 3 = mms distribution_channel
+                        self._brands_profiles.append({
+                            'brand': brand_id,
+                            'partner_id': int(partner),
+                            'distribution_channel': 3
+                        })
+
+                for partner in partners_wap.split(','):
+                    if partner.isdigit():
+                        # 5 = wap distribution_channel
+                        self._brands_profiles.append({
+                            'brand': brand_id,
+                            'partner_id': int(partner),
+                            'distribution_channel': 5
+                        })
+
+        except Exception, e:
+            self._log.exception('Error load brands profiles.')
+            raise e
+
+    def load_custom_partners(self): # has test case
+        try:
+            config = ConfigParser()
+            config.read('%s/custom_partners.conf' % self._custom_partners_path)
+
+            self._custom_partners = {}
+
+            for section in config.sections():
+                partners = config.get(section, 'Partners')
+                for partner in partners.split(','):
+                    partner = int(partner)
+                    self._custom_partners[partner] = section
+
+        except Exception, e:
+            self._log.exception('Error load custom partners.')
+            raise e
 
     def check_news_outlet(self, schedule):
         if schedule.partner_id in self._custom_partners:
             schedule.news_outlet = '%s/news_%s_pool' % (self._basedir,
                 self._custom_partners[schedule.partner_id])
 
-    def load_last_activity(self):
+    def load_last_activity(self): # has test case
         fp = open(self._last_activity_path, 'r')
         last_activity = fp.read().strip()
         fp.close()
@@ -137,12 +149,13 @@ class Scheduler(basic_daemon_trucho):
         fp.write(status)
         fp.close
 
-    def load_history(self):
+    def load_history(self): # has test case
         try:
             fp = open(self._dispatches_history_path, 'r')
             self._history = cPickle.load(fp)
             fp.close()
         except:
+            self._log.warning('Creating a new and empty history.')
             self._history = {}
 
     def is_schedule_in_history(self, schedule):
