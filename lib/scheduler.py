@@ -141,7 +141,7 @@ class Scheduler(basic_daemon_trucho):
         fp.close()
         self._last_activity = datetime.strptime(last_activity, DATETIME_FORMAT)
 
-    def save_last_activity(self):
+    def save_last_activity(self): # magin
         fp = open(self._last_activity_path, 'w')
         fp.write(self._start_time.strftime(DATETIME_FORMAT))
         fp.close()
