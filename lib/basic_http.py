@@ -66,7 +66,7 @@ class BasicHttp(object):
         self._curl.setopt(pycurl.HTTPAUTH, pycurl.HTTPAUTH_BASIC)
         self._curl.setopt(pycurl.USERPWD, '%s:%s' % (username, password))
 
-    def request(self, method='GET', data=None, headers={}, wanted_status=200):
+    def request(self, method='GET', data=None, headers={}, wanted_status=None):
         """
         Test request
 
@@ -125,9 +125,10 @@ class BasicHttp(object):
         self._curl.perform()
         self._status = self._curl.getinfo(pycurl.HTTP_CODE)
 
-        #if self._status != wanted_status:
-        #    raise InvalidResponse('Wanted Status: %d Response Status: %d' % (
-        #        wanted_status, self._status))
+        if isinstance(wanted_status, list):
+            if self._status not in wanted_status:
+                raise InvalidResponse('Wanted Status: %d Response ' \
+                    'Status: %d' % (wanted_status, self._status))
 
         data = {
             'status': self._status,

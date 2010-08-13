@@ -19,6 +19,8 @@ class basic_daemon_trucho(object):
     def load_settings(self):
         raise NotImplementedError()
 
+class SchedulerHistoryError(Exception): pass
+
 class Scheduler(basic_daemon_trucho):
     __slots__ = (
         '_log',
@@ -128,10 +130,10 @@ class Scheduler(basic_daemon_trucho):
             self._log.exception('Error load custom partners.')
             raise e
 
-    def check_news_outlet(self, schedule):
-        if schedule.partner_id in self._custom_partners:
-            schedule.news_outlet = '%s/news_%s_pool' % (self._basedir,
-                self._custom_partners[schedule.partner_id])
+    def check_news_outlet(self, dispatch): # has test case
+        if dispatch.partner_id in self._custom_partners:
+            dispatch.news_outlet = '%s/news_%s_pool' % (self._basedir,
+                self._custom_partners[dispatch.partner_id])
 
     def load_last_activity(self): # has test case
         fp = open(self._last_activity_path, 'r')
@@ -158,8 +160,8 @@ class Scheduler(basic_daemon_trucho):
             self._log.warning('Creating a new and empty history.')
             self._history = {}
 
-    def is_schedule_in_history(self, schedule):
-        return self._history.get(schedule.id) == \
+    def is_dispatch_in_history(self, dispatch): # has test case
+        return self._history.get(dispatch.id) == \
             self._start_time.strftime(DATETIME_FORMAT)
 
     def inject_to_queue(self, schedule):
@@ -191,13 +193,21 @@ class Scheduler(basic_daemon_trucho):
 
         os.rename(filename, filename.replace('.tmp', '.go'))
 
-    def add_schedule_to_history(self, schedule):
-        self._history[schedule.id] = self._start_time.strftime(DATETIME_FORMAT)
+    def add_dispatch_to_history(self, dispatch):
+        self._history[dispatch.id] = self._start_time.strftime(DATETIME_FORMAT)
 
-    def save_history(self):
-        fp = open(self._dispatches_history_path, 'w')
-        cPickle.dump(self._history, fp)
-        fp.close()
+    def save_history(self): # has test case
+        if not isinstance(self._history, dict):
+            raise SchedulerHistoryError('The history is not a dict.')
+
+        try:
+            fp = open(self._dispatches_history_path, 'w')
+            cPickle.dump(self._history, fp)
+            fp.close()
+
+        except Exception, e:
+            self._log.exception('Error on save history.')
+            raise e
 
     # Getters & Setters
     def get_pid_path(self):

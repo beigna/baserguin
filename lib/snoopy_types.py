@@ -30,9 +30,9 @@ class SnoopyDispatch(Dispatch):
         """
 
         if kwargs.get('schedule'):
-            super(SnoopySchedule, self).__init__(**dict(kwargs.get('schedule')))
+            super(SnoopyDispatch, self).__init__(**dict(kwargs.get('schedule')))
         else:
-            super(SnoopySchedule, self).__init__(*args, **kwargs)
+            super(SnoopyDispatch, self).__init__(*args, **kwargs)
 
         self._since = None
         if kwargs.get('since'):

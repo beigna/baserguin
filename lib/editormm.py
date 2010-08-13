@@ -121,9 +121,10 @@ class EditorMM(object):
         >>> a.load_settings()
         >>> response = a.get_dispatches({'brand': '00000004', \
         'partner_id': 4004, 'distribution_channel': 1}, \
-        since='2010-08-11 00:00:00', until='2010-08-11 23:00:00')
+        since='2010-08-13 00:00:00', until='2010-08-13 23:00:00')
         >>> isinstance(response[0], Dispatch)
         True
+        >>> print response[0].as_dict()
         """
 
         dispatches = []
@@ -204,7 +205,7 @@ class Dispatch(object):
 
         self._package_id = None
         if kwargs.get('package_id'):
-            self.packge_id = kwargs.get('package_id')
+            self.package_id = kwargs.get('package_id')
 
         self._package_name = None
         if kwargs.get('package_name'):

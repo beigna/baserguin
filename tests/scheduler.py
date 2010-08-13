@@ -10,6 +10,8 @@ from ConfigParser import NoOptionError, NoSectionError
 sys.path.append('/home/nachopro/desarrollo/snoopy_oo')
 from lib.scheduler import Scheduler
 from lib.logger import get_logger
+from lib.editormm import Dispatch
+from lib.snoopy_types import SnoopyDispatch
 
 def gen_file(file_path, content):
     open(file_path, 'w').write(content)
@@ -63,7 +65,7 @@ Partners=4033''')
 
     def test_load_custom_partners_ok(self):
         gen_file('/tmp/snoopy_xms/etc/custom_partners.conf', '''[butterfly]
-partners=4024,4037,4038,4039,4046'''),
+partners=4024,4037,4038,4039,4046''')
 
         logger = get_logger('Scheduler-Test')
         scheduler = Scheduler(logger)
@@ -72,7 +74,7 @@ partners=4024,4037,4038,4039,4046'''),
 
     def test_load_custom_partners_fail(self):
         gen_file('/tmp/snoopy_xms/etc/custom_partners.conf', '''[butterfly]
-partners_mal_escrito=4024'''),
+partners_mal_escrito=4024''')
 
         logger = get_logger('Scheduler-Test')
         scheduler = Scheduler(logger)
@@ -117,12 +119,182 @@ s.''')
         scheduler.load_history()
 
     def test_load_history_fail(self):
+        # TODO: Test dummie, nunca va a fallar. Revisar
         gen_file('/tmp/snoopy_xms/scheduler/dispatches_history.cpickle', '''formato invalido''')
 
         logger = get_logger('Scheduler-Test')
         scheduler = Scheduler(logger)
         scheduler.load_settings()
         scheduler.load_history()
+
+    def test_is_dispatch_in_history_true(self):
+        dispatch_dict = {
+            'package_name': u'Aries',
+            'carrier_id': '00000004',
+            'package_id': 495L,
+            'send_time': '12:30:00',
+            'services': [],
+            'partner_id': 4004,
+            'id': 546L,
+            'distribution_channel': 1,
+            'channel_name': u'Aries',
+            'is_extra': False,
+            'news_id': None,
+            'channel_id': 66L
+        }
+        dispatch = Dispatch(**dict(dispatch_dict))
+
+        logger = get_logger('Scheduler-Test')
+        scheduler = Scheduler(logger)
+        scheduler.load_settings()
+        scheduler.load_history()
+        scheduler.add_dispatch_to_history(dispatch)
+        self.assertTrue(scheduler.is_dispatch_in_history(dispatch))
+
+    def test_is_dispatch_in_history_true(self):
+        dispatch_dict = {
+            'package_name': u'Aries',
+            'carrier_id': '00000004',
+            'package_id': 495L,
+            'send_time': '12:30:00',
+            'services': [],
+            'partner_id': 4004,
+            'id': 546L,
+            'distribution_channel': 1,
+            'channel_name': u'Aries',
+            'is_extra': False,
+            'news_id': None,
+            'channel_id': 66L
+        }
+        dispatch = Dispatch(**dict(dispatch_dict))
+
+        logger = get_logger('Scheduler-Test')
+        scheduler = Scheduler(logger)
+        scheduler.load_settings()
+        scheduler.load_history()
+        self.assertFalse(scheduler.is_dispatch_in_history(dispatch))
+
+    def test_save_history_ok(self):
+        dispatch_dict = {
+            'package_name': u'Aries',
+            'carrier_id': '00000004',
+            'package_id': 495L,
+            'send_time': '12:30:00',
+            'services': [],
+            'partner_id': 4004,
+            'id': 546L,
+            'distribution_channel': 1,
+            'channel_name': u'Aries',
+            'is_extra': False,
+            'news_id': None,
+            'channel_id': 66L
+        }
+        dispatch = Dispatch(**dict(dispatch_dict))
+
+        logger = get_logger('Scheduler-Test')
+        scheduler = Scheduler(logger)
+        scheduler.load_settings()
+        scheduler.load_history()
+        scheduler.add_dispatch_to_history(dispatch)
+        scheduler.save_history()
+
+        scheduler_bis = Scheduler(logger)
+        scheduler_bis.load_settings()
+        scheduler_bis.load_history()
+        self.assertTrue(scheduler_bis.is_dispatch_in_history(dispatch))
+
+    def test_save_history_fail(self):
+        dispatch_dict = {
+            'package_name': u'Aries',
+            'carrier_id': '00000004',
+            'package_id': 495L,
+            'send_time': '12:30:00',
+            'services': [],
+            'partner_id': 4004,
+            'id': 546L,
+            'distribution_channel': 1,
+            'channel_name': u'Aries',
+            'is_extra': False,
+            'news_id': None,
+            'channel_id': 66L
+        }
+        dispatch = Dispatch(**dict(dispatch_dict))
+
+        logger = get_logger('Scheduler-Test')
+        scheduler = Scheduler(logger)
+        scheduler.load_settings()
+        scheduler.load_history()
+        scheduler.add_dispatch_to_history(dispatch)
+
+        scheduler_bis = Scheduler(logger)
+        scheduler_bis.load_settings()
+        scheduler_bis.load_history()
+        self.assertFalse(scheduler_bis.is_dispatch_in_history(dispatch))
+
+    def test_check_news_outlet_ok(self):
+        gen_file('/tmp/snoopy_xms/etc/custom_partners.conf', '''[butterfly]
+partners=4024,4037,4038,4039,4046''')
+
+        dispatch_dict = {
+            'package_name': u'Aries',
+            'carrier_id': '00000004',
+            'package_id': 495L,
+            'send_time': '12:30:00',
+            'services': [],
+            'partner_id': 4046,
+            'id': 546L,
+            'distribution_channel': 1,
+            'channel_name': u'Aries',
+            'is_extra': False,
+            'news_id': None,
+            'channel_id': 66L
+        }
+
+        snoopy_dispatch = SnoopyDispatch(schedule=dispatch_dict)
+
+        logger = get_logger('Scheduler-Test')
+        scheduler = Scheduler(logger)
+        scheduler.load_settings()
+        scheduler.load_custom_partners()
+        scheduler.check_news_outlet(snoopy_dispatch)
+
+        self.assertEqual(snoopy_dispatch.news_outlet,
+            '/tmp/snoopy_xms/news_butterfly_pool')
+
+    def test_check_news_outlet_fail(self):
+        gen_file('/tmp/snoopy_xms/etc/custom_partners.conf', '''[butterfly]
+partners=4024,4037,4038,4039,4046''')
+
+        dispatch_dict = {
+            'package_name': u'Aries',
+            'carrier_id': '00000004',
+            'package_id': 495L,
+            'send_time': '12:30:00',
+            'services': [],
+            'partner_id': 4004,
+            'id': 546L,
+            'distribution_channel': 1,
+            'channel_name': u'Aries',
+            'is_extra': False,
+            'news_id': None,
+            'channel_id': 66L
+        }
+
+        snoopy_dispatch = SnoopyDispatch(schedule=dispatch_dict)
+
+        logger = get_logger('Scheduler-Test')
+        scheduler = Scheduler(logger)
+        scheduler.load_settings()
+        scheduler.load_custom_partners()
+        scheduler.check_news_outlet(snoopy_dispatch)
+
+        self.assertEqual(snoopy_dispatch.news_outlet, None)
+
+    def test_save_last_activity_ok(self):
+        logger = get_logger('Scheduler-Test')
+        scheduler = Scheduler(logger)
+        scheduler.load_settings()
+        scheduler.save_last_activity()
 
 if __name__ == '__main__':
     unittest.main()
