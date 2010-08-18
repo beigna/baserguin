@@ -4,6 +4,7 @@ import os, sys
 import glob
 from ConfigParser import ConfigParser
 from datetime import datetime
+from tempfile import mktemp
 import simplejson
 import yaml
 import cPickle
@@ -141,7 +142,7 @@ class Scheduler(basic_daemon_trucho):
         fp.close()
         self._last_activity = datetime.strptime(last_activity, DATETIME_FORMAT)
 
-    def save_last_activity(self): # magin
+    def save_last_activity(self): # has test case
         fp = open(self._last_activity_path, 'w')
         fp.write(self._start_time.strftime(DATETIME_FORMAT))
         fp.close()
@@ -175,25 +176,25 @@ class Scheduler(basic_daemon_trucho):
 
         schedule.outlet_file = filename
 
-    def report(self, schedule):
+    def report(self, dispatch): # has test case
         data = {
-            'uuid': schedule.uuid,
-            'partner': schedule.partner_id,
-            'id': schedule.id,
-            'is_extra': schedule.is_extra,
-            'date': schedule.send_time,
+            'uuid': dispatch.uuid,
+            'partner': dispatch.partner_id,
+            'id': dispatch.id,
+            'is_extra': dispatch.is_extra,
+            'date': dispatch.send_time,
             'notified_at': datetime.utcnow().strftime(DATETIME_FORMAT)
         }
 
         filename = mktemp(prefix='sch_', suffix='.tmp',
             dir=self._stats_outlet_path)
         fp = open(filename, 'w')
-        fp.write(data)
+        fp.write(yaml.safe_dump(data))
         fp.close()
 
         os.rename(filename, filename.replace('.tmp', '.go'))
 
-    def add_dispatch_to_history(self, dispatch):
+    def add_dispatch_to_history(self, dispatch): # implicit tests
         self._history[dispatch.id] = self._start_time.strftime(DATETIME_FORMAT)
 
     def save_history(self): # has test case

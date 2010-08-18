@@ -4,6 +4,8 @@ import sys
 import os
 import shutil
 import unittest
+import glob
+import yaml
 from datetime import datetime
 from ConfigParser import NoOptionError, NoSectionError
 
@@ -20,6 +22,7 @@ class SchedulerTest(unittest.TestCase):
     def setUp(self):
         os.makedirs('/tmp/snoopy_xms/scheduler/')
         os.makedirs('/tmp/snoopy_xms/etc/brands_profiles/')
+        os.makedirs('/tmp/snoopy_xms/stats_pool/')
 
     def tearDown(self):
         shutil.rmtree('/tmp/snoopy_xms')
@@ -151,7 +154,7 @@ s.''')
         scheduler.add_dispatch_to_history(dispatch)
         self.assertTrue(scheduler.is_dispatch_in_history(dispatch))
 
-    def test_is_dispatch_in_history_true(self):
+    def test_is_dispatch_in_history_false(self):
         dispatch_dict = {
             'package_name': u'Aries',
             'carrier_id': '00000004',
@@ -295,6 +298,39 @@ partners=4024,4037,4038,4039,4046''')
         scheduler = Scheduler(logger)
         scheduler.load_settings()
         scheduler.save_last_activity()
+
+    def test_report(self):
+        dispatch_dict = {
+            'package_name': u'Aries',
+            'carrier_id': '00000004',
+            'package_id': 495L,
+            'send_time': '12:30:00',
+            'services': [],
+            'partner_id': 4004,
+            'id': 546L,
+            'distribution_channel': 1,
+            'channel_name': u'Aries',
+            'is_extra': False,
+            'news_id': None,
+            'channel_id': 66L
+        }
+        snoopy_dispatch = SnoopyDispatch(schedule=dispatch_dict)
+
+        logger = get_logger('Scheduler-Test')
+        scheduler = Scheduler(logger)
+        scheduler.load_settings()
+        scheduler.report(snoopy_dispatch)
+
+        files = glob.glob('/tmp/snoopy_xms/stats_pool/sch_*.go')
+        data = yaml.safe_load(open(files[0], 'r').read())
+
+        original_data = (snoopy_dispatch.uuid, snoopy_dispatch.partner_id,
+            snoopy_dispatch.id, snoopy_dispatch.is_extra,
+            snoopy_dispatch.send_time)
+        loaded_data = (data['uuid'], data['partner'], data['id'],
+            data['is_extra'], data['date'])
+
+        self.assertEqual(original_data, loaded_data)
 
 if __name__ == '__main__':
     unittest.main()
