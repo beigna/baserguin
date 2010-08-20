@@ -22,7 +22,7 @@ class SchedulerTest(unittest.TestCase):
     def setUp(self):
         os.makedirs('/tmp/snoopy_xms/scheduler/')
         os.makedirs('/tmp/snoopy_xms/etc/brands_profiles/')
-        os.makedirs('/tmp/snoopy_xms/stats_pool/')
+        os.makedirs('/tmp/snoopy_xms/reports_pool/')
 
     def tearDown(self):
         shutil.rmtree('/tmp/snoopy_xms')
@@ -299,7 +299,7 @@ partners=4024,4037,4038,4039,4046''')
         scheduler.load_settings()
         scheduler.save_last_activity()
 
-    def test_report(self):
+    def test_report_ok(self):
         dispatch_dict = {
             'package_name': u'Aries',
             'carrier_id': '00000004',
@@ -321,7 +321,7 @@ partners=4024,4037,4038,4039,4046''')
         scheduler.load_settings()
         scheduler.report(snoopy_dispatch)
 
-        files = glob.glob('/tmp/snoopy_xms/stats_pool/sch_*.go')
+        files = glob.glob('/tmp/snoopy_xms/reports_pool/sch_*.go')
         data = yaml.safe_load(open(files[0], 'r').read())
 
         original_data = (snoopy_dispatch.uuid, snoopy_dispatch.partner_id,

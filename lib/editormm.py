@@ -14,7 +14,7 @@ import sys
 from lib.logger import get_logger
 
 class EditorMMError(Exception): pass
-class FetchingSchedulesError(EditorMMError): pass
+class FetchingDispatchesError(EditorMMError): pass
 
 class EditorMM(object):
     __slots__ = ('_log', '_schedules_ws', '_extras_ws', '_content_type')
@@ -54,14 +54,17 @@ class EditorMM(object):
     def _get_dispatches(self, brand_profile, since, until, ws_data, is_extra):
         try:
             if is_extra:
-                between = {'since': since, 'until': until}
+                between = {
+                    'since': since.strftime(DATETIME_FORMAT),
+                    'until': until.strftime(DATETIME_FORMAT)
+                }
                 url = '%s?%s' % (ws_data['url'], urlencode(between))
 
                 self._log.debug('Extra URL: %s' % (url))
 
             else:
-                brand_profile['since'] = since
-                brand_profile['until'] = until
+                brand_profile['since'] = since.strftime(DATETIME_FORMAT)
+                brand_profile['until'] = until.strftime(DATETIME_FORMAT)
                 brand_profile['is_extra'] = 0
                 url = '%s?%s' % (ws_data['url'], urlencode(brand_profile))
 
@@ -84,35 +87,42 @@ class EditorMM(object):
 
             for dispatch_data in dispatches_data:
                 dispatch = Dispatch()
-                dispatch.carrier_id = brand_profile['brand']
                 dispatch.channel_id = dispatch_data['channel_id']
                 dispatch.channel_name = dispatch_data['channel_name']
-                dispatch.distribution_channel = \
-                    brand_profile['distribution_channel']
                 dispatch.is_extra = is_extra
                 dispatch.id = dispatch_data['id']
                 dispatch.package_id = dispatch_data['package_id']
                 dispatch.package_name = dispatch_data['package_name']
-                dispatch.partner_id = brand_profile['partner_id']
                 dispatch.services = dispatch_data['services']
 
                 if is_extra:
+                    dispatch.carrier_id = dispatch_data['brand']
+                    dispatch.distribution_channel = \
+                        dispatch_data['distribution_channel']
+                    dispatch.partner_id = dispatch_data['partner_id']
+                    # Exclusivo
                     dispatch.news_id = dispatch_data['news_id']
+
                 else:
+                    dispatch.carrier_id = brand_profile['brand']
+                    dispatch.distribution_channel = \
+                        brand_profile['distribution_channel']
+                    dispatch.partner_id = brand_profile['partner_id']
+
                     # TODO modificar algún día el WS para que
                     # no lo mande como objeto
                     st = dispatch_data['send_time']
                     st = '%02d:%02d:%02d' % (st.hour, st.minute, st.second)
+                    # Exclusivo
                     dispatch.send_time = st
-                    #
 
                 dispatches_list.append(dispatch)
 
             return dispatches_list
 
         except:
-            self._log.exception('Errrrro')
-            raise FetchingSchedulesError('aaa')
+            self._log.exception('Error.')
+            raise FetchingDispatchesError('Related URL %s' % (url))
 
     def get_dispatches(self, brand_profile, since, until):
         """
@@ -140,7 +150,15 @@ class EditorMM(object):
         dispatches.extend(extras)
         dispatches.extend(schedules)
 
-        return schedules
+        return dispatches
+
+    def get_extras(self, since, until):
+        return self._get_dispatches('', since, until,
+            self._extras_ws, is_extra=True)
+
+    def get_schedules(self, brand_profile, since, until):
+        return self._get_dispatches(brand_profile, since, until,
+            self._schedules_ws, is_extra=False)
 
 class Dispatch(object):
     __slots__ = (
@@ -253,6 +271,10 @@ class Dispatch(object):
     def set_channel_name(self, value):
         if type(value) not in STRING:
             raise ValueError('channel_name must be string.')
+
+        if isinstance(value, str):
+            value = value.decode('utf-8')
+
         self._channel_name = value
 
     channel_name = property(get_channel_name, set_channel_name)
@@ -314,6 +336,10 @@ class Dispatch(object):
     def set_package_name(self, value):
         if type(value) not in STRING:
             raise ValueError('package_name must be string.')
+
+        if isinstance(value, str):
+            value = value.decode('utf-8')
+
         self._package_name = value
 
     package_name = property(get_package_name, set_package_name)

@@ -36,7 +36,7 @@ class Scheduler(basic_daemon_trucho):
         '_last_status_path',
         '_dispatches_history_path',
         '_dispatches_outlet_path',
-        '_stats_outlet_path',
+        '_reports_outlet_path',
         '_brands_profiles_path',
         '_custom_partners_path',
         '_basedir'
@@ -48,9 +48,14 @@ class Scheduler(basic_daemon_trucho):
 
     def load_settings(self): # has test case
         try:
+            file_path = '%s/conf/scheduler.conf' % (
+                os.path.abspath(sys.path[0]))
+
+            if not os.path.exists(file_path):
+                raise IOError('%s do not exists.' % file_path)
+
             config = ConfigParser()
-            config.read('%s/conf/scheduler.conf' %
-                (os.path.abspath(sys.path[0])))
+            config.read(file_path)
 
             self._pid_path = config.get('General', 'pid')
             self._last_activity_path = config.get('General', 'LastActivity')
@@ -59,7 +64,7 @@ class Scheduler(basic_daemon_trucho):
                 config.get('General', 'DispatchesHistory')
             self._dispatches_outlet_path = \
                 config.get('General', 'DispatchesOutlet')
-            self._stats_outlet_path = config.get('General', 'StatsOutlet')
+            self._reports_outlet_path = config.get('General', 'ReportsOutlet')
             self._brands_profiles_path = config.get('General', 'BrandsProfiles')
             self._custom_partners_path = config.get('General', 'CustomPartners')
             self._basedir = config.get('General', 'BaseDir')
@@ -165,16 +170,16 @@ class Scheduler(basic_daemon_trucho):
         return self._history.get(dispatch.id) == \
             self._start_time.strftime(DATETIME_FORMAT)
 
-    def inject_to_queue(self, schedule):
-        data = simplejson.dumps(schedule.as_dict())
+    def inject_to_queue(self, dispatch):
+        data = simplejson.dumps(dispatch.as_dict())
 
-        filename = '%s/scheduled_%s_%d.tmp' % (self._dispatches_outlet_path,
-            self._start_time, schedule.id)
+        filename = '%s/dispatchd_%s_%d.tmp' % (self._dispatches_outlet_path,
+            self._start_time, dispatch.id)
         fp = open(filename, 'w')
         fp.write(data)
         fp.close()
 
-        schedule.outlet_file = filename
+        dispatch.outlet_file = filename
 
     def report(self, dispatch): # has test case
         data = {
@@ -187,7 +192,7 @@ class Scheduler(basic_daemon_trucho):
         }
 
         filename = mktemp(prefix='sch_', suffix='.tmp',
-            dir=self._stats_outlet_path)
+            dir=self._reports_outlet_path)
         fp = open(filename, 'w')
         fp.write(yaml.safe_dump(data))
         fp.close()
