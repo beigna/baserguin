@@ -190,7 +190,8 @@ class Scheduler(basic_daemon_trucho):
         data = simplejson.dumps(dispatch.as_dict())
 
         filename = '%s/dispatchd_%s_%d.tmp' % (self._dispatches_outlet_path,
-            self._start_time.strftime(DATETIME_FORMAT), dispatch.id)
+            self._start_time.strftime(DATETIME_FORMAT.replace(' ', '_')),
+            dispatch.id)
         fp = open(filename, 'w')
         fp.write(data)
         fp.close()

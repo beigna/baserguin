@@ -54,7 +54,6 @@ try:
     dispatches = editormm.get_extras(scheduler.last_activity,
         scheduler.start_time)
 
-    ## ver si son mandables
     for i, dispatch in enumerate(dispatches):
         if not scheduler.can_be_send(dispatch):
             log.warning('%s is not supported by Scheduler\'s brands '\

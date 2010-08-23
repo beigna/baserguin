@@ -168,13 +168,23 @@ class Dispatch(object):
         }
 
     def __unicode__(self):
-        return u'ID# %d %s - %s News ID# %d' % (self.id, self.package_name,
-            self.channel_name, self.news_id)
+        value = u'ID# %d %s - %s' % (self.id, self.package_name,
+            self.channel_name)
+
+        if self.is_extra:
+            value = '%s News ID# %d' % (value, self.news_id)
+
+        return value
 
     def __str__(self):
-        return 'ID# %d %s - %s News ID# %d' % (self.id,
+        value = 'ID# %d %s - %s' % (self.id,
             self.package_name.encode('utf-8'),
-            self.channel_name.encode('utf-8'), self.news_id)
+            self.channel_name.encode('utf-8'))
+
+        if self.is_extra:
+            value = '%s News ID# %d' % (value, self.news_id)
+
+        return value
 
     def __init__(self, *args, **kwargs):
         self._carrier_id = None
