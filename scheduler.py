@@ -54,35 +54,32 @@ try:
     dispatches = editormm.get_extras(scheduler.last_activity,
         scheduler.start_time)
 
+    ## ver si son mandables
+    for i, dispatch in enumerate(dispatches):
+        if not scheduler.can_be_send(dispatch):
+            log.warning('%s is not supported by Scheduler\'s brands '\
+                'profiles.' % (dispatch))
+            del(dispatches[i])
+
     for brand_profile in scheduler.brands_profiles:
         log.info('Looking for schedules %s - %d [%s]' % (brand_profile['brand'],
             brand_profile['partner_id'],
             dc[brand_profile['distribution_channel']]))
 
         dispatches.extend(editormm.get_schedules(brand_profile,
-            scheduler.last_activity,
-            scheduler.start_time))
+            scheduler.last_activity, scheduler.start_time))
 
     for dispatch in dispatches:
         if dispatch.is_extra:
-            log.info('  Processing [Extra] ID#%d %s - %s' % (
-                dispatch.id,
-                dispatch.package_name.encode('utf-8'),
-                dispatch.channel_name.encode('utf-8'),
-            ))
+            log.info('  Processing [Extra] %s' % (dispatch))
         else:
-            log.info('  Processing [Scheduled] ID#%d @ %s %s - %s' % (
-                dispatch.id,
-                dispatch.send_time,
-                dispatch.package_name.encode('utf-8'),
-                dispatch.channel_name.encode('utf-8'),
-            ))
+            log.info('  Processing [Scheduled] %s' % (dispatch))
 
         if scheduler.is_dispatch_in_history(dispatch):
             log.warning('   Dispatch has been already processed.')
 
         else:
-            log.info('    Saving dispatch ...')
+            log.info('   Saving dispatch ...')
             try:
                 schedule_dispatch = \
                     SnoopyDispatch(schedule=dispatch.as_dict())
@@ -95,7 +92,7 @@ try:
                 scheduler.inject_to_queue(schedule_dispatch)
 
             except:
-                log.exception('    Unknow error.')
+                log.exception('   Unknow error.')
                 fail_flag = True
 
             else:
@@ -125,5 +122,5 @@ finally:
         log.exception('Failed at remove pid file. You manual '
             'removes it while the scripts is under execution?')
 
-    log.info('Done.')
+    log.info('Done. Fail flag: %s' % (fail_flag))
 

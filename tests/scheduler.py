@@ -177,6 +177,98 @@ s.''')
         scheduler.load_history()
         self.assertFalse(scheduler.is_dispatch_in_history(dispatch))
 
+    def test_is_dispatch_in_history_true_extra(self):
+        dispatch_dict = {
+            'package_name': u'Aries',
+            'carrier_id': '00000004',
+            'package_id': 495L,
+            'send_time': '12:30:00',
+            'services': [],
+            'partner_id': 4004,
+            'id': 546L,
+            'distribution_channel': 1,
+            'channel_name': u'Aries',
+            'is_extra': True,
+            'news_id': 123456,
+            'channel_id': 66L
+        }
+        dispatch = Dispatch(**dict(dispatch_dict))
+
+        logger = get_logger('Scheduler-Test')
+        scheduler = Scheduler(logger)
+        scheduler.load_settings()
+        scheduler.load_history()
+        scheduler.add_dispatch_to_history(dispatch)
+        self.assertTrue(scheduler.is_dispatch_in_history(dispatch))
+
+    def test_can_be_send_true(self):
+        gen_file('/tmp/snoopy_xms/etc/brands_profiles/ar_personal.conf', '''[General]
+BrandId=00000004
+
+[Sms]
+Partners=4004,4015,4022,4025,4017,4026,4027,4037,4044
+
+[Mms]
+Partners=4017,4005
+
+[Wap]
+Partners=4033''')
+        dispatch_dict = {
+            'package_name': u'Aries',
+            'carrier_id': '00000004',
+            'package_id': 495L,
+            'send_time': '12:30:00',
+            'services': [],
+            'partner_id': 4004,
+            'id': 546L,
+            'distribution_channel': 1,
+            'channel_name': u'Aries',
+            'is_extra': True,
+            'news_id': 123456,
+            'channel_id': 66L
+        }
+        dispatch = Dispatch(**dict(dispatch_dict))
+
+        logger = get_logger('Scheduler-Test')
+        scheduler = Scheduler(logger)
+        scheduler.load_settings()
+        scheduler.load_brands_profiles()
+        self.assertTrue(scheduler.can_be_send(dispatch))
+
+    def test_can_be_send_false(self):
+        gen_file('/tmp/snoopy_xms/etc/brands_profiles/ar_personal.conf', '''[General]
+BrandId=00000004
+
+[Sms]
+Partners=400,4015,4022,4025,4017,4026,4027,4037,4044
+
+[Mms]
+Partners=4017,4005
+
+[Wap]
+Partners=4033''')
+        dispatch_dict = {
+            'package_name': u'Aries',
+            'carrier_id': '00000004',
+            'package_id': 495L,
+            'send_time': '12:30:00',
+            'services': [],
+            'partner_id': 4004,
+            'id': 546L,
+            'distribution_channel': 1,
+            'channel_name': u'Aries',
+            'is_extra': True,
+            'news_id': 123456,
+            'channel_id': 66L
+        }
+        dispatch = Dispatch(**dict(dispatch_dict))
+
+        logger = get_logger('Scheduler-Test')
+        scheduler = Scheduler(logger)
+        scheduler.load_settings()
+        scheduler.load_brands_profiles()
+        self.assertFalse(scheduler.can_be_send(dispatch))
+
     def test_save_history_ok(self):
         dispatch_dict = {
             'package_name': u'Aries',

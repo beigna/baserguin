@@ -166,15 +166,31 @@ class Scheduler(basic_daemon_trucho):
             self._log.warning('Creating a new and empty history.')
             self._history = {}
 
+    def can_be_send(self, dispatch):
+        result = filter(lambda e: e['brand'] == dispatch.carrier_id
+            and e['partner_id'] == dispatch.partner_id
+            and e['distribution_channel'] == dispatch.distribution_channel,
+            self._brands_profiles)
+
+        if len(result) == 1:
+            return True
+
+        return False
+
     def is_dispatch_in_history(self, dispatch): # has test case
-        return self._history.get(dispatch.id) == \
+        if dispatch.is_extra:
+            key = '%d-%d' % (dispatch.id, dispatch.news_id)
+        else:
+            key = dispatch.id
+
+        return self._history.get(key) == \
             self._start_time.strftime(DATETIME_FORMAT)
 
     def inject_to_queue(self, dispatch):
         data = simplejson.dumps(dispatch.as_dict())
 
         filename = '%s/dispatchd_%s_%d.tmp' % (self._dispatches_outlet_path,
-            self._start_time, dispatch.id)
+            self._start_time.strftime(DATETIME_FORMAT), dispatch.id)
         fp = open(filename, 'w')
         fp.write(data)
         fp.close()
@@ -200,7 +216,12 @@ class Scheduler(basic_daemon_trucho):
         os.rename(filename, filename.replace('.tmp', '.go'))
 
     def add_dispatch_to_history(self, dispatch): # implicit tests
-        self._history[dispatch.id] = self._start_time.strftime(DATETIME_FORMAT)
+        if dispatch.is_extra:
+            key = '%d-%d' % (dispatch.id, dispatch.news_id)
+        else:
+            key = dispatch.id
+
+        self._history[key] = self._start_time.strftime(DATETIME_FORMAT)
 
     def save_history(self): # has test case
         if not isinstance(self._history, dict):
