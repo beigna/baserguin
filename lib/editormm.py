@@ -37,19 +37,22 @@ class EditorMM(object):
         return data
 
     def load_settings(self):
-        """
-        Test
+        try:
+            file_path = '%s/conf/editormm.conf' % (
+                os.path.abspath(sys.path[0]))
 
-        >d>> log = get_logger('test-case')
-        >d>> a = EditorMM(log)
-        >d>> a.load_settings()
-        """
+            if not os.path.exists(file_path):
+                raise IOError('%s do not exists.' % (file_path))
 
-        config = ConfigParser()
-        config.read('%s/conf/editormm.conf' % (os.path.abspath(sys.path[0])))
+            config = ConfigParser()
+            config.read(file_path)
 
-        self._schedules_ws = self._parse_config(config, 'Schedules')
-        self._extras_ws = self._parse_config(config, 'Extras')
+            self._schedules_ws = self._parse_config(config, 'Schedules')
+            self._extras_ws = self._parse_config(config, 'Extras')
+
+        except Exception, e:
+            self._log.exception('Error load settings.')
+            raise e
 
     def _get_dispatches(self, brand_profile, since, until, ws_data, is_extra):
         try:
@@ -120,40 +123,12 @@ class EditorMM(object):
 
             return dispatches_list
 
-        except:
-            self._log.exception('Error.')
-            raise FetchingDispatchesError('Related URL %s' % (url))
-
-    def get_dispatches(self, brand_profile, since, until):
-        """
-        >>> log = get_logger('testingggg')
-        >>> a = EditorMM(log)
-        >>> a.load_settings()
-        >>> response = a.get_dispatches({'brand': '00000004', \
-        'partner_id': 4004, 'distribution_channel': 1}, \
-        since='2010-08-13 00:00:00', until='2010-08-13 23:00:00')
-        >>> isinstance(response[0], Dispatch)
-        True
-        >>> print response[0].as_dict()
-        """
-
-        dispatches = []
-
-        # extras
-        extras = self._get_dispatches(brand_profile, since, until,
-            self._extras_ws, is_extra=True)
-
-        # schedules
-        schedules = self._get_dispatches(brand_profile, since, until,
-            self._schedules_ws, is_extra=False)
-
-        dispatches.extend(extras)
-        dispatches.extend(schedules)
-
-        return dispatches
+        except Exception, e:
+            self._log.exception('Related URL %s' % (url))
+            raise e
 
     def get_extras(self, since, until):
-        return self._get_dispatches('', since, until,
+        return self._get_dispatches(None, since, until,
             self._extras_ws, is_extra=True)
 
     def get_schedules(self, brand_profile, since, until):
@@ -191,6 +166,15 @@ class Dispatch(object):
             'send_time': self.send_time,
             'services': self.services
         }
+
+    def __unicode__(self):
+        return u'ID# %d %s - %s News ID# %d' % (self.id, self.package_name,
+            self.channel_name, self.news_id)
+
+    def __str__(self):
+        return 'ID# %d %s - %s News ID# %d' % (self.id,
+            self.package_name.encode('utf-8'),
+            self.channel_name.encode('utf-8'), self.news_id)
 
     def __init__(self, *args, **kwargs):
         self._carrier_id = None
