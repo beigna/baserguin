@@ -184,7 +184,7 @@ class Scheduler(basic_daemon_trucho):
             key = dispatch.id
 
         return self._history.get(key) == \
-            self._start_time.strftime(DATETIME_FORMAT)
+            self._start_time.strftime('%Y-%m-%d')
 
     def inject_to_queue(self, dispatch):
         data = simplejson.dumps(dispatch.as_dict())
@@ -222,7 +222,7 @@ class Scheduler(basic_daemon_trucho):
         else:
             key = dispatch.id
 
-        self._history[key] = self._start_time.strftime(DATETIME_FORMAT)
+        self._history[key] = self._start_time.strftime('%Y-%m-%d')
 
     def save_history(self): # has test case
         if not isinstance(self._history, dict):
