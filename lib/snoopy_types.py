@@ -3,7 +3,6 @@
 from lib.editormm import Dispatch
 from lib.constants import STRING, NUMBER, DATETIME_FORMAT
 
-from yaml import safe_load, safe_dump
 from uuid import uuid1
 import datetime
 
@@ -18,17 +17,6 @@ class SnoopyDispatch(Dispatch):
     )
 
     def __init__(self, *args, **kwargs):
-        """
-        >>> a = Dispatch(id=1, partner_id=56)
-        >>> b = SnoopySchedule(schedule=a.as_dict())
-        >>> b.id
-        1
-
-        >>> a = SnoopySchedule(id=1)
-        >>> b.id
-        1
-        """
-
         if kwargs.get('schedule'):
             super(SnoopyDispatch, self).__init__(**dict(kwargs.get('schedule')))
         else:
@@ -49,30 +37,31 @@ class SnoopyDispatch(Dispatch):
 
         self._uuid = uuid1().hex
 
-    def load(self, text):
-        data = safe_load(text)
+    def from_dict(self, data):
+        if not isinstance(data, dict):
+            raise TypeError('Argument must be dictonary.')
 
-        self.carrier_is = data['carrier_id']
+        self.carrier_id = data['carrier_id']
         self.channel_id = data['channel_id']
         self.channel_name = data['channel_name']
         self.distribution_channel = data['distribution_channel']
         self.id = data['id']
         self.is_extra = data['is_extra']
+        if data['news_id']:
+            self.news_id = data['news_id']
         self.package_id = data['package_id']
         self.package_name = data['package_name']
         self.partner_id = data['partner_id']
-        self.until = datetime.datetime.strptime(data['until'], DATETIME_FORMAT)
+        self.send_time = data['send_time']
         self.services = data['services']
-
-        if self.is_extra:
-            self.since = datetime.datetime.strptime(data['since'],
-                DATETIME_FORMAT)
-        else:
-            self.send_time = data['send_time']
-            self.uuid = data['uuid']
-
-        if data.get('news_outlet'):
+        #
+        self.since = datetime.datetime.strptime(data['since'], DATETIME_FORMAT)
+        self.until = datetime.datetime.strptime(data['until'], DATETIME_FORMAT)
+        if data['news_outlet']:
             self.news_outlet = data['news_outlet']
+        if not isinstance(data['uuid'], str) or len(data['uuid']) != 32:
+            raise TypeError('UUID must be a valid UUID.')
+        self._uuid = data['uuid']
 
     def as_dict(self):
         data = {
@@ -82,29 +71,25 @@ class SnoopyDispatch(Dispatch):
             'distribution_channel': self.distribution_channel,
             'id': self.id,
             'is_extra': self.is_extra,
+            'news_id': self.news_id,
             'package_id': self.package_id,
             'package_name': self.package_name,
             'partner_id': self.partner_id,
-            'send_time': self.send_time,
+            'send_time': self.send_time, # Acts as since when look for news
             'services': self.services,
-
+            #
+            'since': None,
+            'until': None,
             'news_outlet': self.news_outlet, # Custom path for some
                                              # special dispatches.
+            'uuid': self.uuid,
         }
 
-        try:
+        if not self.is_extra:
             data['until'] = self.until.strftime(DATETIME_FORMAT)
-        except AttributeError:
-            data['until'] = None
-
-        if self.is_extra:
             data['since'] = self.since.strftime(DATETIME_FORMAT)
-        else:
-            data['uuid'] = self.uuid
 
-        text = safe_dump(data)
-
-        return text
+        return data
 
 
     # Getters & Setters
@@ -112,10 +97,9 @@ class SnoopyDispatch(Dispatch):
         return self._since
 
     def set_since(self, value):
-        if self.is_extra == True:
-            if type(value) != datetime.datetime:
-                raise ValueError('since must be datetime.datetime.')
-            self._since = value
+        if type(value) != datetime.datetime:
+            raise ValueError('since must be datetime.datetime.')
+        self._since = value
 
     since = property(get_since, set_since)
     ##
