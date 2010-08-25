@@ -207,7 +207,7 @@ class Dispatch(object):
         if kwargs.get('id'):
             self.id = kwargs.get('id')
 
-        self._is_extra = None
+        self._is_extra = False
         if kwargs.get('is_extra'):
             self.is_extra = kwargs.get('is_extra')
 
