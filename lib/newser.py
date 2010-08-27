@@ -7,7 +7,7 @@ import Queue # for Queue.Empty exception
 from ConfigParser import ConfigParser
 import simplejson
 
-from lib.snoopy_types import Dispatch
+from lib.snoopy_types import SnoopyDispatch
 
 class Newser(Process):
     def __init__(self, queue, is_running, process_id, cfg, log):
@@ -68,9 +68,17 @@ class Newser(Process):
             data = simplejson.load(fp)
             fp.close()
 
+            dispatch = SnoopyDispatch()
+            dispatch.from_dict(data)
+
         except Exception, e:
             self._log.exception('#%02d %s Dispatch could not be loaded.' % (
                 self._procces_id))
             raise e
+
+        editormm = EditorMM(self._log)
+        channel = editormm.get_channel(dispatch.channel_id)
+
+        news = editormm.get_news(dispatch)
 
 

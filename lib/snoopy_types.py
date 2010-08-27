@@ -7,6 +7,16 @@ from uuid import uuid1
 import datetime
 
 
+class DispatchSMS(object):
+    pass
+
+class DispatchSMS(object):
+    pass
+
+class DispatchSMS(object):
+    pass
+
+
 class SnoopyDispatch(Dispatch):
     __slots__ = (
         '_since',

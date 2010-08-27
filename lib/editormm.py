@@ -11,13 +11,13 @@ import simplejson
 import os
 import sys
 
-from lib.logger import get_logger
 
 class EditorMMError(Exception): pass
 class FetchingDispatchesError(EditorMMError): pass
 
 class EditorMM(object):
-    __slots__ = ('_log', '_schedules_ws', '_extras_ws', '_content_type')
+    __slots__ = ('_log', '_schedules_ws', '_extras_ws', '_content_type',
+        '_channels_ws')
 
     def __init__(self, logger):
         self._log = logger
@@ -49,14 +49,16 @@ class EditorMM(object):
 
             self._schedules_ws = self._parse_config(config, 'Schedules')
             self._extras_ws = self._parse_config(config, 'Extras')
+            self._channels_ws = self._parse_config(config, 'Channels')
 
         except Exception, e:
             self._log.exception('Error load settings.')
             raise e
 
-    def _get_dispatches(self, brand_profile, since, until, ws_data, is_extra):
+    def _get_dispatches(self, brand_profile, since, until, is_extra):
         try:
             if is_extra:
+                ws_data = self._extras_ws
                 between = {
                     'since': since.strftime(DATETIME_FORMAT),
                     'until': until.strftime(DATETIME_FORMAT)
@@ -66,6 +68,7 @@ class EditorMM(object):
                 self._log.debug('Extra URL: %s' % (url))
 
             else:
+                ws_data = self._schedules_ws
                 brand_profile['since'] = since.strftime(DATETIME_FORMAT)
                 brand_profile['until'] = until.strftime(DATETIME_FORMAT)
                 brand_profile['is_extra'] = 0
@@ -128,12 +131,358 @@ class EditorMM(object):
             raise e
 
     def get_extras(self, since, until):
-        return self._get_dispatches(None, since, until,
-            self._extras_ws, is_extra=True)
+        return self._get_dispatches(None, since, until, is_extra=True)
 
     def get_schedules(self, brand_profile, since, until):
         return self._get_dispatches(brand_profile, since, until,
-            self._schedules_ws, is_extra=False)
+            is_extra=False)
+
+    def get_channel(self, id):
+        try:
+            ws_data = self._channels_ws
+            url = '%s/%d/' % (ws_data['url'], id)
+
+            self._log.debug('Channel URL: %s' % (url))
+
+            http = BasicHttp(url)
+            http.authenticate(ws_data['username'], ws_data['password'])
+
+            data = http.request(headers={
+                'Accept': self._content_type[ws_data['format']]}
+            )
+
+            channel_data = simplejson.loads(data['body'])
+            channel = Channel(**dict(channel_data))
+
+            return channel
+
+        except Exception, e:
+            self._log.exception('Related URL %s' % (url))
+            raise e
+
+    def get_channel(self, id):
+        try:
+            ws_data = self._channels_ws
+            url = '%s/%d/' % (ws_data['url'], id)
+
+            self._log.debug('Channel URL: %s' % (url))
+
+            http = BasicHttp(url)
+            http.authenticate(ws_data['username'], ws_data['password'])
+
+            data = http.request(headers={
+                'Accept': self._content_type[ws_data['format']]}
+            )
+
+            channel_data = simplejson.loads(data['body'])
+            channel = Channel(**dict(channel_data))
+
+            return channel
+
+        except Exception, e:
+            self._log.exception('Related URL %s' % (url))
+            raise e
+
+    def get_package(self, package):
+        pass
+
+    def _get_news_attachments(self):
+        pass
+
+    def _get_news(self):
+        pass
+
+    def get_news(self, dispatch):
+        if dispatch.is_extra:
+            news = self._get_news('/news/123/')
+
+        else:
+            news = self._get_news('/news/?channel_id=1&since=2010&until=2011')
+
+        if dispatch.distribution_channel == 3: # MMS
+            news.attachments = self._get_news_attachments(news)
+
+        # continuar
+
+
+
+class News(object):
+    __slots__ = (
+        '_attachments'
+        '_enhanced_message'
+        '_enhanced_title'
+        '_id'
+        '_is_extra'
+        '_publish_at'
+        '_short_message'
+        '_short_title'
+        '_title'
+        '_wap_push_title'
+        '_wap_push_url'
+    )
+
+    def get_is_extra(self):
+        return self._is_extra
+
+    def set_is_extra(self, value):
+        if type(value) :
+            raise ValueError('is_extra must be positive integer.')
+        self._is_extra = value
+
+    is_extra = property(get_is_extra, set_is_extra)
+    #
+    def get_id(self):
+        return self._id
+
+    def set_id(self, value):
+        if type(value) not in NUMBER or value < 1:
+            raise ValueError('id must be positive integer.')
+        self._id = value
+
+    id = property(get_id, set_id)
+    #
+    def get_enhanced_title(self):
+        return self._enhanced_title
+
+    def set_enhanced_title(self, value):
+        if type(value):
+            raise ValueError('enhanced_title must be string.')
+        self._enhanced_title = value
+
+    enhanced_title = property(get_enhanced_title, set_enhanced_title)
+    #
+    def get_enhanced_message(self):
+        return self._enhanced_message
+
+    def set_enhanced_message(self, value):
+        if type(value) not in STRING:
+            raise ValueError('enhanced_message must be string.')
+        self._enhanced_message = value
+
+    enhanced_message = property(get_enhanced_message, set_enhanced_message)
+    #
+    def __str__(self):
+        return 'News ID# %d %s' % (self.id, self.short_title or
+            self.enhanced_title or self.wap_push_title)
+
+    def get_attachments(self):
+        return self._attachments
+
+    def set_attachments(self, value):
+        if not value:
+            raise ValueError('attachments must be positive integer.')
+        self._attachments = value
+
+    attachments = property(get_attachments, set_attachments)
+    #
+
+class Package(object):
+     'mms_title': 'Personal News Multimedia',
+ 'name': 'Policiales Argentina',
+ 'partner_id': 4005,
+ 'partner_name': 'Personal MMS'
+ channels': [{'id': 168, 'name': 'Policiales Argentina'}],
+ 'cross_selling': '',
+ 'default_smil': 2,
+ 'description': '',
+ 'distribution_channel_id': 3,
+ 'has_fixed_image': 1,
+ 'id': 540,
+ 'mms_header':'
+
+class Attachment(object):
+    __slots__ = (
+        '_id',
+        '_filename',
+        '_content_type',
+        '_content'
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.id = kwargs.get('id')
+        self.filename = kwargs.get('filename')
+        self.content_type = kwargs.get('content_type')
+        self.content = kwargs.get('content')
+
+    def __str__(self):
+        return '%s %s' % (self.filename, self.content_type)
+    #
+    def get_content(self):
+        return self._content
+
+    def set_content(self, value):
+        if type(value) not in STRING:
+            raise ValueError('content must be string.')
+        self._content = value
+
+    content = property(get_content, set_content)
+    #
+    def get_content_type(self):
+        return self._content_type
+
+    def set_content_type(self, value):
+        if type(value) not in STRING:
+            raise ValueError('content_type must be string.')
+        self._content_type = value
+
+    content_type = property(get_content_type, set_content_type)
+    #
+    def get_filename(self):
+        return self._filename
+
+    def set_filename(self, value):
+        if type(value) not in STRING:
+            raise ValueError('filename must be string.')
+        self._filename = value
+
+    filename = property(get_filename, set_filename)
+    #
+    def get_id(self):
+        return self._id
+
+    def set_id(self, value):
+        if type(value) not in NUMBER or value < 0:
+            raise ValueError('id must be positive integer.')
+        self._id = value
+
+    id = property(get_id, set_id)
+    #
+
+class Channel(object):
+    __slots__ = (
+        '_expiration_days',
+        '_extra_sm_enabled',
+        '_extra_sm_length',
+        '_id',
+        '_is_autoload',
+        '_name',
+        '_scheduled_sm_enabled',
+        '_scheduled_sm_length'
+    )
+
+    def __unicode__(self):
+        return u'ID# %d %s' % (self.id, self.name)
+
+    def __str__(self):
+        return 'ID# %d %s' % (self.id, self.name.encode('utf-8'))
+
+    def __init__(self, *args, **kwargs):
+        self._expiration_days = None
+        if kwargs.get('expiration_days'):
+            self.expiration_days = kwargs.get('expiration_days')
+
+        self._extra_sm_enabled = False
+        if kwargs.get('extra_sm_enabled'):
+            self.extra_sm_enabled = kwargs.get('extra_sm_enabled')
+
+        self._extra_sm_length = 0
+        if kwargs.get('extra_sm_length'):
+            self.extra_sm_length = kwargs.get('extra_sm_length')
+
+        self._id = None
+        if kwargs.get('id'):
+            self.id = kwargs.get('id')
+
+        self._is_autoload = False
+        if kwargs.get('is_autoload'):
+            self.is_autoload = kwargs.get('is_autoload')
+
+        self._name = None
+        if kwargs.get('name'):
+            self.name = kwargs.get('name')
+
+        self._scheduled_sm_enabled = False
+        if kwargs.get('scheduled_sm_enabled'):
+            self.scheduled_sm_enabled = kwargs.get('scheduled_sm_enabled')
+
+        self._scheduled_sm_length = 0
+        if kwargs.get('scheduled_sm_length'):
+            self.scheduled_sm_length = kwargs.get('scheduled_sm_length')
+
+
+    def get_scheduled_sm_length(self):
+        return self._scheduled_sm_length
+
+    def set_scheduled_sm_length(self, value):
+        if type(value) not in NUMBER or value < 0:
+            raise ValueError('scheduled_sm_length must be positive integer.')
+        self._scheduled_sm_length = value
+
+    scheduled_sm_length = property(get_scheduled_sm_length,
+        set_scheduled_sm_length)
+    #
+    def get_scheduled_sm_enabled(self):
+        return self._scheduled_sm_enabled
+
+    def set_scheduled_sm_enabled(self, value):
+        if value not in (0, 1) or type(value) != bool:
+            raise ValueError('scheduled_sm_enabled must be boolean.')
+        self._scheduled_sm_enabled = bool(value)
+
+    scheduled_sm_enabled = property(get_scheduled_sm_enabled,
+        set_scheduled_sm_enabled)
+    #
+    def get_name(self):
+        return self._name
+
+    def set_name(self, value):
+        if type(value) not in STRING:
+            raise ValueError('name must be string.')
+        self._name = value
+
+    name = property(get_name, set_name)
+    #
+    def get_is_autoload(self):
+        return self._is_autoload
+
+    def set_is_autoload(self, value):
+        if value in (0, 1) or type(value) == bool:
+            self._is_autoload = bool(value)
+        else:
+            raise ValueError('is_autoload must be boolean.')
+
+    is_autoload = property(get_is_autoload, set_is_autoload)
+    #
+    def get_id(self):
+        return self._id
+
+    def set_id(self, value):
+        if type(value) not in NUMBER or value < 1:
+            raise ValueError('id must be positive integer.')
+        self._id = value
+
+    id = property(get_id, set_id)
+    #
+    def get_extra_sm_length(self):
+        return self._extra_sm_length
+
+    def set_extra_sm_length(self, value):
+        if type(value) not in NUMBER or value < 0:
+            raise ValueError('extra_sm_length must be positive integer.')
+        self._extra_sm_length = value
+
+    extra_sm_length = property(get_extra_sm_length, set_extra_sm_length)
+    #
+    def get_extra_sm_enabled(self):
+        return self._extra_sm_enabled
+
+    def set_extra_sm_enabled(self, value):
+        if value not in (0, 1) or type(value) != bool:
+            raise ValueError('extra_sm_enabled must be boolean.')
+        self._extra_sm_enabled = bool(value)
+
+    extra_sm_enabled = property(get_extra_sm_enabled, set_extra_sm_enabled)
+    #
+    def get_expiration_days(self):
+        return self._expiration_days
+
+    def set_expiration_days(self, value):
+        if type(value) not in NUMBER:
+            raise ValueError('expiration_days must be positive integer.')
+        self._expiration_days = value
+
+    expiration_days = property(get_expiration_days, set_expiration_days)
+
 
 class Dispatch(object):
     __slots__ = (
@@ -300,7 +649,7 @@ class Dispatch(object):
     def set_is_extra(self, value):
         if value not in (0, 1) or type(value) != bool:
             raise ValueError('is_extra must be boolean.')
-        self._is_extra = value
+        self._is_extra = bool(value)
 
     is_extra = property(get_is_extra, set_is_extra)
     ##
