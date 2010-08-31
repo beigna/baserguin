@@ -66,43 +66,10 @@ class BasicHttp(object):
         self._curl.setopt(pycurl.HTTPAUTH, pycurl.HTTPAUTH_BASIC)
         self._curl.setopt(pycurl.USERPWD, '%s:%s' % (username, password))
 
-    def request(self, method='GET', data=None, headers={}, wanted_status=None):
-        """
-        Test request
-
-        >>> a = BasicHttp('http://www.google.com/')
-        >>> response = a.request()
-        >>> response['status'] == 200
-        True
-
-        >>> a = BasicHttp('http://www.google.com/')
-        >>> response = a.request('POST', 'test')
-        >>> response['status'] == 405
-        True
-
-        >>> a = BasicHttp('http://www.google.com/')
-        >>> response = a.request('POST', {'data': 'test'})
-        >>> response['status'] == 405
-        True
-
-        >>> a = BasicHttp('http://www.google.com/')
-        >>> response = a.request('PUT', 'test')
-        >>> response['status'] == 405
-        True
-
-        >>> a = BasicHttp('http://www.google.com/')
-        >>> response = a.request('PUT', {'data': 'test'})
-        >>> response['status'] == 405
-        True
-
-        >>> a = BasicHttp('http://www.google.com/')
-        >>> response = a.request('HEAD')
-        >>> response['status'] == 200
-        True
-        """
+    def _request(self, method='GET', data=None, headers={}, wanted_status=None):
 
         if 'User-Agent' not in headers.keys():
-            headers['User-Agent'] = 'Cyclelogic BasicHTTP Lib 0.1'
+            headers['User-Agent'] = 'Cyclelogic BasicHTTP Lib 0.2'
 
         headers = ['%s: %s' % (k, v) for k, v in headers.iteritems()]
         self._curl.setopt(pycurl.HTTPHEADER, headers)
@@ -136,4 +103,16 @@ class BasicHttp(object):
             'body': self._body.getvalue()
         }
         return data
+
+    def GET(self, data=None, headers={}, wanted_status=None):
+        return self._request('GET', data, headers, wanted_status)
+
+    def POST(self, data=None, headers={}, wanted_status=None):
+        return self._request('POST', data, headers, wanted_status)
+
+    def HEAD(self, data=None, headers={}, wanted_status=None):
+        return self._request('HEAD', data, headers, wanted_status)
+
+    def PUT(self, data=None, headers={}, wanted_status=None):
+        return self._request('POST', data, headers, wanted_status)
 
