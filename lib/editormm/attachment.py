@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from lib.constants import STRING, NUMBER
+from lib.basic_types import String, Integer
 
 class Attachment(object):
     __slots__ = (
@@ -20,42 +20,26 @@ class Attachment(object):
         return '%s %s' % (self.filename, self.content_type)
     #
     def get_content(self):
-        return self._content
-
+        return self._content.value
     def set_content(self, value):
-        if type(value) not in STRING:
-            raise ValueError('content must be string.')
-        self._content = value
-
+        self._content = String(value)
     content = property(get_content, set_content)
     #
     def get_content_type(self):
-        return self._content_type
-
+        return self._content_type.value
     def set_content_type(self, value):
-        if type(value) not in STRING:
-            raise ValueError('content_type must be string.')
-        self._content_type = value
-
+        self._content_type = String(value)
     content_type = property(get_content_type, set_content_type)
     #
     def get_filename(self):
-        return self._filename
-
+        return self._filename.value
     def set_filename(self, value):
-        if type(value) not in STRING:
-            raise ValueError('filename must be string.')
-        self._filename = value
-
+        self._filename = String(value)
     filename = property(get_filename, set_filename)
     #
     def get_id(self):
-        return self._id
-
+        return self._id.value
     def set_id(self, value):
-        if type(value) not in NUMBER or value < 0:
-            raise ValueError('id must be positive integer.')
-        self._id = value
-
+        self._id = Integer(value)
     id = property(get_id, set_id)
     #

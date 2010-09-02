@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from lib.constants import STRING, NUMBER
-from lib.types import Boolean, String, Integer, DateTime
+from lib.basic_types import Boolean, String, Integer
 
 class Channel(object):
     __slots__ = (
@@ -65,13 +64,9 @@ class Channel(object):
     is_autoload = property(get_is_autoload, set_is_autoload)
     #
     def get_id(self):
-        return self._id
-
+        return self._id.value
     def set_id(self, value):
-        if type(value) not in NUMBER or value < 1:
-            raise ValueError('id must be positive integer.')
-        self._id = value
-
+        self._id = Integer(value)
     id = property(get_id, set_id)
     #
     def get_extra_sm_length(self):

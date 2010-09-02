@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from lib.constants import STRING, NUMBER
+from lib.basic_types import Boolean, String, Integer, DateTime
 
 class Dispatch(object):
     __slots__ = (
@@ -114,27 +115,15 @@ class Dispatch(object):
     carrier_id = property(get_carrier_id, set_carrier_id)
     #
     def get_channel_id(self):
-        return self._channel_id
-
+        return self._channel_id.value
     def set_channel_id(self, value):
-        if type(value) not in NUMBER or value < 1:
-            raise ValueError('channel_id must be positive integer.')
-        self._channel_id = value
-
+        self._channel_id = Integer(value)
     channel_id = property(get_channel_id, set_channel_id)
     #
     def get_channel_name(self):
-        return self._channel_name
-
+        return self._channel_name.value
     def set_channel_name(self, value):
-        if type(value) not in STRING:
-            raise ValueError('channel_name must be string.')
-
-        if isinstance(value, str):
-            value = value.decode('utf-8')
-
-        self._channel_name = value
-
+        self._channel_name = String(value)
     channel_name = property(get_channel_name, set_channel_name)
     #
     def get_distribution_channel(self):
@@ -149,77 +138,45 @@ class Dispatch(object):
         set_distribution_channel)
     #
     def get_id(self):
-        return self._id
-
+        return self._id.value
     def set_id(self, value):
-        if type(value) not in NUMBER or value < 1:
-            raise ValueError('id must be positive integer.')
-        self._id = value
-
+        self._id = Integer(value)
     id = property(get_id, set_id)
     #
     def get_is_extra(self):
-        return self._is_extra
-
+        return self._is_extra.value
     def set_is_extra(self, value):
-        if value not in (0, 1) or type(value) != bool:
-            raise ValueError('is_extra must be boolean.')
-        self._is_extra = bool(value)
-
+        self._is_extra = Boolean(value)
     is_extra = property(get_is_extra, set_is_extra)
     #
     def get_news_id(self):
-        return self._news_id
-
+        return self._news_id.value
     def set_news_id(self, value):
-        if type(value) not in NUMBER or value < 1:
-            raise ValueError('news_id must be positive integer.')
-        self._news_id = value
-
+        self._news_id = Integer(value)
     news_id = property(get_news_id, set_news_id)
     #
     def get_package_id(self):
-        return self._package_id
-
+        return self._package_id.value
     def set_package_id(self, value):
-        if type(value) not in NUMBER or value < 1:
-            raise ValueError('package_id must be positive integer.')
-        self._package_id = value
-
+        self._package_id = Integer(value)
     package_id = property(get_package_id, set_package_id)
     #
     def get_package_name(self):
-        return self._package_name
-
+        return self._package_name.value
     def set_package_name(self, value):
-        if type(value) not in STRING:
-            raise ValueError('package_name must be string.')
-
-        if isinstance(value, str):
-            value = value.decode('utf-8')
-
-        self._package_name = value
-
+        self._package_name = String(value)
     package_name = property(get_package_name, set_package_name)
     #
     def get_partner_id(self):
-        return self._partner_id
-
+        return self._partner_id.value
     def set_partner_id(self, value):
-        if type(value) not in NUMBER or value < 1:
-            raise ValueError('partner_id must be positive integer.')
-        self._partner_id = value
-
+        self._partner_id = Integer(value)
     partner_id = property(get_partner_id, set_partner_id)
     #
     def get_send_time(self):
-        return self._send_time
-
+        return self._send_time.value
     def set_send_time(self, value):
-        if type(value) not in STRING:
-            raise ValueError('send_time must be string.')
-        self._send_time = value
-
+        self._send_time = String(value)
     send_time = property(get_send_time, set_send_time)
     #
     def get_services(self):

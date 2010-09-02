@@ -24,7 +24,7 @@ class Boolean(object):
 
     def get(self):
         return self._value
-    data = property(get)
+    value = property(get)
 
 class DateTime(object):
     __slots__ = ('_value',)
@@ -48,7 +48,7 @@ class DateTime(object):
 
     def get(self):
         return self._value
-    data = property(get)
+    value = property(get)
 
 class String(object):
     __slots__ = ('_value',)
@@ -75,7 +75,7 @@ class String(object):
 
     def get(self):
         return self._value
-    data = property(get)
+    value = property(get)
 
 class Integer(object):
     __slots__ = ('_value',)
@@ -91,5 +91,5 @@ class Integer(object):
 
     def get(self):
         return self._value
-    data = property(get)
+    value = property(get)
 

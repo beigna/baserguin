@@ -28,11 +28,11 @@ class TestBasicTypes(unittest.TestCase):
     def test_boolean(self):
         for e in self.boolean_true:
             a = Boolean(e)
-            self.assertEqual(a.data, True)
+            self.assertEqual(a.value, True)
 
         for e in self.boolean_false:
             a = Boolean(e)
-            self.assertEqual(a.data, False)
+            self.assertEqual(a.value, False)
 
         for e in self.boolean_type_fail:
             try:
@@ -49,7 +49,7 @@ class TestBasicTypes(unittest.TestCase):
     def test_datetime(self):
         for e in self.datetime_ok:
             a = DateTime(e)
-            self.assertEqual(type(a.data), datetime.datetime)
+            self.assertEqual(type(a.value), datetime.datetime)
 
         for e in self.datetime_type_fail:
             try:
@@ -66,11 +66,11 @@ class TestBasicTypes(unittest.TestCase):
     def test_integer(self):
         for e in self.integer_int:
             a = Integer(e)
-            self.assertEqual(type(a.data), int)
+            self.assertEqual(type(a.value), int)
 
         for e in self.integer_long:
             a = Integer(e)
-            self.assertEqual(type(a.data), long)
+            self.assertEqual(type(a.value), long)
 
         for e in self.integer_fail:
             try:
