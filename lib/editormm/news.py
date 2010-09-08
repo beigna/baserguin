@@ -31,9 +31,12 @@ class News(object):
         self.wap_push_title = kwargs.get('wap_push_title', '')
         self.wap_push_url = kwargs.get('wap_push_url', '')
 
-    def __str__(self):
-        return 'News ID# %d %s' % (self.id, self.short_title or
+    def __unicode__(self):
+        return u'News ID# %d %s' % (self.id, self.short_title or
             self.enhanced_title or self.wap_push_title)
+
+    def __str__(self):
+        return self.__unicode__().encode('utf-8')
 
     def get_wap_push_url(self):
         return self._wap_push_url.value
@@ -101,8 +104,8 @@ class News(object):
         return self._attachments
 
     def set_attachments(self, value):
-        if not value:
-            raise ValueError('attachments must be positive integer.')
+        if not isinstance(value, list):
+            raise ValueError('attachments must be a list.')
         self._attachments = value
 
     attachments = property(get_attachments, set_attachments)

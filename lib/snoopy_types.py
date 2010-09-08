@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from lib.editormm import Dispatch
+from lib.editormm.dispatch import Dispatch
 from lib.constants import STRING, NUMBER, DATETIME_FORMAT
 
 from uuid import uuid1
@@ -25,6 +25,18 @@ class SnoopyDispatch(Dispatch):
         '_uuid',
         '_outlet_file',
     )
+
+    def __unicode__(self):
+        value = u'ID# %d %s - %s [%s - %s] ' % (self.id, self.package_name,
+            self.channel_name, self.since, self.until)
+
+        if self.is_extra:
+            value = '%s News ID# %d %s' % (value, self.news_id, self.uuid)
+
+        return value
+
+    def __str__(self):
+        return self.__unicode__().encode('utf-8')
 
     def __init__(self, *args, **kwargs):
         if kwargs.get('schedule'):

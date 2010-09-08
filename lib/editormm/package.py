@@ -31,23 +31,23 @@ class Package(object):
             self.cross_selling = kwargs.get('cross_selling')
 
         self._default_smil = None
-        if kwargs.get('default_smil')
+        if kwargs.get('default_smil'):
             self.default_smil = kwargs.get('default_smil')
 
         self._description = None
-        if kwargs.get('description')
+        if kwargs.get('description'):
             self.description = kwargs.get('description')
 
         self._has_fidex_image = None
-        if kwargs.get('has_fidex_image')
+        if kwargs.get('has_fidex_image'):
             self.has_fidex_image = kwargs.get('has_fidex_image')
 
         self._mms_header = None
-        if kwargs.get('mms_header')
+        if kwargs.get('mms_header'):
             self.mms_header = kwargs.get('mms_header')
 
         self._mms_title = None
-        if kwargs.get('mms_title')
+        if kwargs.get('mms_title'):
             self.mms_title = kwargs.get('mms_title')
 
     #

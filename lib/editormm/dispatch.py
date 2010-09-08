@@ -45,14 +45,7 @@ class Dispatch(object):
         return value
 
     def __str__(self):
-        value = 'ID# %d %s - %s' % (self.id,
-            self.package_name.encode('utf-8'),
-            self.channel_name.encode('utf-8'))
-
-        if self.is_extra:
-            value = '%s News ID# %d' % (value, self.news_id)
-
-        return value
+        return self.__unicode__().encode('utf-8')
 
     def __init__(self, *args, **kwargs):
         self._carrier_id = None
@@ -75,11 +68,9 @@ class Dispatch(object):
         if kwargs.get('id'):
             self.id = kwargs.get('id')
 
-        self._is_extra = False
-        if kwargs.get('is_extra'):
-            self.is_extra = kwargs.get('is_extra')
+        self.is_extra = kwargs.get('is_extra', False)
 
-        self._news_id = None
+        self._news_id = Integer(0)
         if kwargs.get('news_id'):
             self.news_id = kwargs.get('news_id')
 
@@ -95,7 +86,7 @@ class Dispatch(object):
         if kwargs.get('partner_id'):
             self.partner_id = kwargs.get('partner_id')
 
-        self._send_time = None
+        self._send_time = DateTime('1984-09-28 06:50:00')
         if kwargs.get('send_time'):
             self.send_time = kwargs.get('send_time')
 
@@ -176,7 +167,7 @@ class Dispatch(object):
     def get_send_time(self):
         return self._send_time.value
     def set_send_time(self, value):
-        self._send_time = String(value)
+        self._send_time = DateTime(value)
     send_time = property(get_send_time, set_send_time)
     #
     def get_services(self):

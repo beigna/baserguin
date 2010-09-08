@@ -13,6 +13,7 @@ from lib.editormm.dispatch import Dispatch
 from lib.editormm.news import News
 from lib.editormm.package import Package
 from lib.logger import get_logger
+from lib.snoopy_types import SnoopyDispatch
 
 
 class EditorMMTest(unittest.TestCase):
@@ -71,6 +72,33 @@ class EditorMMTest(unittest.TestCase):
         self.assertEqual(channel.extra_sm_length, 0)
         self.assertEqual(channel.name, '9 de Julio')
 
+    def test_get_attachment(self):
+        logger = get_logger('EditorMM-Test')
+        editormm = EditorMM(logger)
+        editormm.load_settings()
+
+        since = datetime(2010, 9, 8, 11, 27, 30)
+        until = since + timedelta(minutes=5)
+        brand_profile = {'brand': '00000004', 'partner_id': 4005,
+            'distribution_channel': 3}
+
+        dispatches = editormm.get_schedules(brand_profile, since, until)
+
+        for dispatch in dispatches:
+            if dispatch.id == 2645:
+                schedule_dispatch = SnoopyDispatch(schedule=dispatch.as_dict())
+                schedule_dispatch.since = since
+                schedule_dispatch.until = until
+
+                break
+
+        print schedule_dispatch
+
+        news = editormm.get_news(schedule_dispatch)
+
+
+        #channel = editormm.get_channel(1031)
+
     def test_channel(self):
         a = Channel(
             expiration_days=-1,
@@ -127,9 +155,10 @@ class EditorMMTest(unittest.TestCase):
             package_id=234,
             package_name='Canal de prueba',
             partner_id=4008,
-            send_time='12:22:30',
+            send_time='2010-08-08 12:22:30',
             services=[{'id': 123}]
         )
+
         self.assertEqual(a.carrier_id, '00000008')
         self.assertEqual(a.channel_id, 54)
         self.assertEqual(a.channel_name, 'Canal de prueba')
@@ -140,23 +169,11 @@ class EditorMMTest(unittest.TestCase):
         self.assertEqual(a.package_id, 234)
         self.assertEqual(a.package_name, 'Canal de prueba')
         self.assertEqual(a.partner_id, 4008)
-        self.assertEqual(a.send_time, '12:22:30')
+        self.assertEqual(str(a.send_time), '2010-08-08 12:22:30')
         self.assertEqual(a.services, [{'id': 123}])
 
     def test_news_ok(self):
-        data = {'attachments': [
-    {'content_type': 'image/jpg','filename': 'map.jpg','id': 3415456},
-    {'content_type': 'application/smil','filename': 'cont.smil','id': 3415457},
-    {'content_type': 'image/jpg','filename': 'image_0.jpg','id': 3415458},
-    {'content_type': 'text/plain','filename': 'text_0.txt','id': 3415459},
-    {'content_type': 'image/jpg','filename': 'image_1.jpg','id': 3415460},
-    {'content_type': 'text/plain','filename': 'text_1.txt','id': 3415461},
-    {'content_type': 'image/jpg','filename': 'image_2.jpg','id': 3415462},
-    {'content_type': 'text/plain','filename': 'text_2.txt','id': 3415463},
-    {'content_type': 'image/jpg','filename': 'image_3.jpg','id': 3415464},
-    {'content_type': 'text/plain','filename': 'text_3.txt','id': 3415465},
-    {'content_type': 'image/jpg','filename': 'image_4.jpg','id': 3415466},
-    {'content_type': 'text/plain','filename': 'text_4.txt','id': 3415467}],
+        data = {
     'enhanced_message': 'MSN Mapas Zona Oeste:\nAu. del Oeste: Demora 5 min\nAv. Lope de Vega: Normal\nCamino del Buen Ayre: Normal\nAv. Francisco Beiro: Normal\nPte. La Noria: Normal\nAu. Perito Moreno: Normal\nAv. Rivadavia: Normal\nAv. Juan B. Justo: Normal\n',
     'enhanced_title': 'MSN Mapas Zona Oeste',
     'id': 752980,
@@ -181,10 +198,10 @@ class EditorMMTest(unittest.TestCase):
         self.assertEqual(a.wap_push_title, data['wap_push_title'])
         self.assertEqual(a.wap_push_url, data['wap_push_url'])
 
-    def test_package_ok(self):
-        data = {}
+    #def test_package_ok(self):
+    #    data = {}
 
-        a = Package(**dict(data))
+    #    a = Package(**dict(data))
 
 if __name__ == '__main__':
     unittest.main()

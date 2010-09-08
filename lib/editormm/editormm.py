@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from lib.basic_http import BasicHttp
 from lib.constants import DATETIME_FORMAT
 from lib.editormm.dispatch import Dispatch
 from lib.editormm.channel import Channel
+from lib.editormm.news import News
 
 
+from basic_http import BasicHttp
 from ConfigParser import ConfigParser
 from urllib import urlencode
+from datetime import datetime
 import yaml
 import simplejson
 import os
@@ -18,8 +20,15 @@ class EditorMMError(Exception): pass
 class FetchingDispatchesError(EditorMMError): pass
 
 class EditorMM(object):
-    __slots__ = ('_log', '_schedules_ws', '_extras_ws', '_content_type',
-        '_channels_ws')
+    __slots__ = (
+        '_log',
+        '_schedules_ws',
+        '_extras_ws',
+        '_content_type',
+        '_channels_ws',
+        '_news_ws',
+        '_attachments_ws',
+    )
 
     def __init__(self, logger):
         self._log = logger
@@ -52,6 +61,8 @@ class EditorMM(object):
             self._schedules_ws = self._parse_config(config, 'Schedules')
             self._extras_ws = self._parse_config(config, 'Extras')
             self._channels_ws = self._parse_config(config, 'Channels')
+            self._news_ws = self._parse_config(config, 'News')
+            self._attachments_ws = self._parse_config(config, 'Attachments')
 
         except Exception, e:
             self._log.exception('Error load settings.')
@@ -120,7 +131,8 @@ class EditorMM(object):
                     # TODO modificar algún día el WS para que
                     # no lo mande como objeto
                     st = dispatch_data['send_time']
-                    st = '%02d:%02d:%02d' % (st.hour, st.minute, st.second)
+                    st = datetime(until.year, until.month, until.day,
+                        st.hour, st.minute, st.second)
                     # Exclusivo
                     dispatch.send_time = st
 
@@ -165,25 +177,79 @@ class EditorMM(object):
     def get_package(self, package):
         pass
 
-    def _get_news_attachments(self):
-        pass
+    def _get_news_attachment(self, id):
+        try:
+            ws_data = self._attachments_ws
+            url = '%s/%d/' % (ws_data['url'], id)
 
-    def _get_news(self):
-        pass
+            self._log.debug('Attachment URL: %s' % (url))
 
-    def get_news(self, dispatch):
+            http = BasicHttp(url)
+            http.authenticate(ws_data['username'], ws_data['password'])
+
+            data = http.GET()
+
+            fn = '%d.%s' % (id, b['header']['Content-Type'].split('/')[1:][0])
+
+            return {
+                'content_type': data['header']['Content-Type'],
+                'content': data['body'],
+                'file_name': fn
+            }
+
+        except Exception, e:
+            self._log.exception('Related URL %s' % (url))
+            raise e
+
+    def _get_news_attachments(self, news_dict):
+        attachments = []
+
+        for attachment in news_dict['attachments']:
+            attachments.append(self._get_news_attachments(attachment.id))
+
+        return attachments
+
+    def _get_news(self, dispatch):
+        ws_data = self._news_ws
+
         if dispatch.is_extra:
-            news = self._get_news('/news/123/')
+            url = '%s/%d/' % (ws_data['url'], dispatch.news_id)
 
         else:
-            news = self._get_news('/news/?channel_id=1&since=2010&until=2011')
+            params = urlencode({
+                'channel_id': dispatch.channel_id,
+                'until': dispatch.send_time
+            })
+            url = '%s/?%s' % (ws_data['url'], params)
 
-        if dispatch.distribution_channel == 3: # MMS
-            news.attachments = self._get_news_attachments(news)
+        self._log.debug('News URL: %s' % (url))
 
-        # continuar
+        http = BasicHttp(url)
+        http.authenticate(ws_data['username'], ws_data['password'])
 
+        data = http.GET(
+            headers={'Accept': 'application/json, application/yaml'},
+            wanted_status=[200,]
+        )
 
+        if data['header']['Content-Type'] == 'application/json':
+            news_dict = simplejson.loads(data['body'])
+
+        elif data['header']['Content-Type'] == 'application/yaml':
+            news_dict = yaml.load(data['body'])
+
+        if len(news_dict):
+            return None
+
+        news = News(**dict(news_dict[0]))
+
+        if dispatch.distribution_channel == 3:
+            print len( self._get_news_attachments(news_dict[0]) )
+
+        return news
+
+    def get_news(self, dispatch):
+        return self._get_news(dispatch)
 
 class dNews(object):
     __slots__ = (
