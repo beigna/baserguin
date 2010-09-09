@@ -77,7 +77,11 @@ class EditorMMTest(unittest.TestCase):
         editormm = EditorMM(logger)
         editormm.load_settings()
 
-        since = datetime(2010, 9, 8, 11, 27, 30)
+        since = datetime(
+            datetime.utcnow().year,
+            datetime.utcnow().month,
+            datetime.utcnow().day,
+            11, 27, 30)
         until = since + timedelta(minutes=5)
         brand_profile = {'brand': '00000004', 'partner_id': 4005,
             'distribution_channel': 3}
@@ -92,12 +96,9 @@ class EditorMMTest(unittest.TestCase):
 
                 break
 
-        print schedule_dispatch
-
         news = editormm.get_news(schedule_dispatch)
 
-
-        #channel = editormm.get_channel(1031)
+        self.assertEqual(type(news.attachments[0]), Attachment)
 
     def test_channel(self):
         a = Channel(

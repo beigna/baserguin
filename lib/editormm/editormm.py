@@ -4,6 +4,7 @@ from lib.constants import DATETIME_FORMAT
 from lib.editormm.dispatch import Dispatch
 from lib.editormm.channel import Channel
 from lib.editormm.news import News
+from lib.editormm.attachment import Attachment
 
 
 from basic_http import BasicHttp
@@ -85,7 +86,7 @@ class EditorMM(object):
                 brand_profile['since'] = since.strftime(DATETIME_FORMAT)
                 brand_profile['until'] = until.strftime(DATETIME_FORMAT)
                 brand_profile['is_extra'] = 0
-                url = '%s?%s' % (ws_data['url'], urlencode(brand_profile))
+                url = '%s/?%s' % (ws_data['url'], urlencode(brand_profile))
 
                 self._log.debug('Schedule URL: %s' % (url))
 
@@ -177,10 +178,10 @@ class EditorMM(object):
     def get_package(self, package):
         pass
 
-    def _get_news_attachment(self, id):
+    def _get_news_attachment(self, attachment):
         try:
             ws_data = self._attachments_ws
-            url = '%s/%d/' % (ws_data['url'], id)
+            url = '%s/%d/' % (ws_data['url'], attachment['id'])
 
             self._log.debug('Attachment URL: %s' % (url))
 
@@ -189,13 +190,12 @@ class EditorMM(object):
 
             data = http.GET()
 
-            fn = '%d.%s' % (id, b['header']['Content-Type'].split('/')[1:][0])
-
-            return {
-                'content_type': data['header']['Content-Type'],
-                'content': data['body'],
-                'file_name': fn
-            }
+            return Attachment(
+                id=attachment['id'],
+                filename=attachment['filename'],
+                content_type=data['header']['Content-Type'],
+                content=data['body']
+            )
 
         except Exception, e:
             self._log.exception('Related URL %s' % (url))
@@ -205,7 +205,7 @@ class EditorMM(object):
         attachments = []
 
         for attachment in news_dict['attachments']:
-            attachments.append(self._get_news_attachments(attachment.id))
+            attachments.append(self._get_news_attachment(attachment))
 
         return attachments
 
@@ -238,13 +238,13 @@ class EditorMM(object):
         elif data['header']['Content-Type'] == 'application/yaml':
             news_dict = yaml.load(data['body'])
 
-        if len(news_dict):
+        if len(news_dict) != 1:
             return None
 
         news = News(**dict(news_dict[0]))
 
         if dispatch.distribution_channel == 3:
-            print len( self._get_news_attachments(news_dict[0]) )
+            news.attachments = self._get_news_attachments(news_dict[0])
 
         return news
 

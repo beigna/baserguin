@@ -16,13 +16,19 @@ class Attachment(object):
         self.content_type = kwargs.get('content_type')
         self.content = kwargs.get('content')
 
+    def __unicode__(self):
+        return u'%s <%s>' % (self.filename, self.content_type)
+
     def __str__(self):
-        return '%s %s' % (self.filename, self.content_type)
+        return self.__unicode__().encode('utf-8')
+
+    def __repr__(self):
+        return repr(self.__str__())
     #
     def get_content(self):
-        return self._content.value
+        return self._content
     def set_content(self, value):
-        self._content = String(value)
+        self._content = value
     content = property(get_content, set_content)
     #
     def get_content_type(self):
