@@ -251,35 +251,3 @@ class EditorMM(object):
     def get_news(self, dispatch):
         return self._get_news(dispatch)
 
-class dNews(object):
-    __slots__ = (
-        '_attachments'
-        '_enhanced_message'
-        '_enhanced_title'
-        '_id'
-        '_is_extra'
-        '_publish_at'
-        '_short_message'
-        '_short_title'
-        '_title'
-        '_wap_push_title'
-        '_wap_push_url'
-    )
-
-
-class dPackage(object):
-     #'channels': [{'id': 168, 'name': 'Policiales Argentina'}],
-     #'cross_selling': '',
-     #'default_smil': 2,
-     #'description': '',
-     #'distribution_channel_id': 3,
-     #'has_fixed_image': 1,
-     #'id': 540,
-     #'mms_header':'
-     #'mms_title': 'Personal News Multimedia',
-     #'name': 'Policiales Argentina',
-     #'partner_id': 4005,
-     #'partner_name': 'Personal MMS'
-     pass
-
-

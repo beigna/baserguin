@@ -41,15 +41,18 @@ for path, dirnames, filenames in all_files:
                 else:
                     FILES.append('%s' % (filename))
 
+
 def staging():
     env.hosts = ['192.168.23.240']
     env.user = 'deployer'
     env.password = 'deployer'
 
+
 def production():
     env.hosts = ['192.168.149.95']
     env.user = 'deployer'
     env.password = 'psMwF7zdn96f'
+
 
 def generate_profiles():
     '''
@@ -62,6 +65,7 @@ def generate_profiles():
     sudo('/etc/init.d/snoopy-subscriptioner restart')
     sudo('/etc/init.d/snoopy-butterfly restart')
 
+
 def restart():
     'Restart all %s services.' % (APP_NAME)
 
@@ -72,6 +76,7 @@ def restart():
 #    sudo('/etc/init.d/snoopy-putter restart')
 #    sudo('/etc/init.d/snoopy-statter restart')
 #    sudo('/etc/init.d/snoopy-notifier restart')
+
 
 def update():
     '''
@@ -99,6 +104,7 @@ def update():
 
     restart()
 
+
 def install():
     '''
     Create the directory structure, update the application files
@@ -125,4 +131,3 @@ def install():
     sudo('mkdir -p /etc/opt/cyclelogic/%s' % (APP_NAME))
 
     update()
-

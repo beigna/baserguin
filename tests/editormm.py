@@ -199,10 +199,23 @@ class EditorMMTest(unittest.TestCase):
         self.assertEqual(a.wap_push_title, data['wap_push_title'])
         self.assertEqual(a.wap_push_url, data['wap_push_url'])
 
-    #def test_package_ok(self):
-    #    data = {}
+    def test_package_ok(self):
+        data = {
+            'channels': [{'id': 168, 'name': 'Policiales Argentina'}],
+            'cross_selling': 'test',
+            'default_smil': 2,
+            'description': 'test',
+            'distribution_channel_id': 3,
+            'has_fixed_image': 1,
+            'id': 540,
+            'mms_header': 'test',
+            'mms_title': 'Personal News Multimedia',
+            'name': 'Policiales Argentina',
+            'partner_id': 4005,
+            'partner_name': 'Personal MMS'
+        }
 
-    #    a = Package(**dict(data))
+        a = Package(**dict(data))
 
 if __name__ == '__main__':
     unittest.main()
