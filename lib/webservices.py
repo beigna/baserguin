@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 
-import socket
+import httplib
 #socket.setdefaulttimeout(20) # La fiesta
+import socket
+
+from base64 import encodestring
+from urllib import urlencode
+from urllib2 import Request, urlopen, HTTPError
+from urlparse import urlparse
+from xml.dom import minidom
 
 import simplejson
 import yaml
-import httplib
-from urlparse import urlparse
-from urllib2 import Request, urlopen, HTTPError
-from urllib import urlencode
-from base64 import encodestring
-from lib.settings import get_lib_ws_settings
+
 from lib.email import snoopy_email
-from xml.dom import minidom
+from lib.settings import get_lib_ws_settings
 
 cfg = get_lib_ws_settings()
 
