@@ -217,5 +217,29 @@ class EditorMMTest(unittest.TestCase):
 
         a = Package(**dict(data))
 
+    def test_get_package_ok(self):
+        logger = get_logger('EditorMM-Test')
+        editormm = EditorMM(logger)
+        editormm.load_settings()
+
+        dispatch = Dispatch(
+            carrier_id='00000008',
+            channel_id=54,
+            channel_name='Canal de prueba',
+            distribution_channel=1,
+            id=132,
+            is_extra=True,
+            news_id=123,
+            package_id=540,
+            package_name='Canal de prueba',
+            partner_id=4008,
+            send_time='2010-08-08 12:22:30',
+            services=[{'id': 123}]
+        )
+
+        package = editormm.get_package(dispatch)
+
+        self.assertEqual(package.id, 540)
+
 if __name__ == '__main__':
     unittest.main()

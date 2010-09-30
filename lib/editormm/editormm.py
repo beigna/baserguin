@@ -5,6 +5,7 @@ from lib.editormm.dispatch import Dispatch
 from lib.editormm.channel import Channel
 from lib.editormm.news import News
 from lib.editormm.attachment import Attachment
+from lib.editormm.package import Package
 
 
 from basic_http import BasicHttp
@@ -29,6 +30,7 @@ class EditorMM(object):
         '_channels_ws',
         '_news_ws',
         '_attachments_ws',
+        '_packages_ws',
     )
 
     def __init__(self, logger):
@@ -64,6 +66,7 @@ class EditorMM(object):
             self._channels_ws = self._parse_config(config, 'Channels')
             self._news_ws = self._parse_config(config, 'News')
             self._attachments_ws = self._parse_config(config, 'Attachments')
+            self._packages_ws = self._parse_config(config, 'Packages')
 
         except Exception, e:
             self._log.exception('Error load settings.')
@@ -77,7 +80,7 @@ class EditorMM(object):
                     'since': since.strftime(DATETIME_FORMAT),
                     'until': until.strftime(DATETIME_FORMAT)
                 }
-                url = '%s?%s' % (ws_data['url'], urlencode(between))
+                url = '%s/?%s' % (ws_data['url'], urlencode(between))
 
                 self._log.debug('Extra URL: %s' % (url))
 
@@ -175,8 +178,27 @@ class EditorMM(object):
             self._log.exception('Related URL %s' % (url))
             raise e
 
-    def get_package(self, package):
-        pass
+    def get_package(self, dispatch):
+        try:
+            ws_data = self._packages_ws
+            url = '%s/%d/' % (ws_data['url'], dispatch.package_id)
+
+            self._log.debug('Package URL: %s' % (url))
+
+            http = BasicHttp(url)
+            http.authenticate(ws_data['username'], ws_data['password'])
+
+            data = http.GET(headers={
+                'Accept': self._content_type[ws_data['format']]}
+            )
+
+            package_data = simplejson.loads(data['body'])
+            package = Package(**dict(package_data))
+
+            return package
+
+        except Exception, e:
+            self._log.exception('Related URL %s' % (url))
 
     def _get_news_attachment(self, attachment):
         try:
