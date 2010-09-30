@@ -1,4 +1,4 @@
-BasicHttp==0.32
+BasicHttp==0.4.1
 PyYAML==3.09
 simplejson==2.1.1
 wsgiref==0.1.2
