@@ -5,7 +5,6 @@ import os
 import unittest
 from datetime import datetime, timedelta
 
-sys.path.append('/home/nachopro/desarrollo/snoopy_oo')
 from lib.editormm.editormm import EditorMM
 from lib.editormm.channel import Channel
 from lib.editormm.attachment import Attachment

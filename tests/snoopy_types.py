@@ -5,7 +5,6 @@ import os
 import unittest
 import datetime
 
-sys.path.append('/home/nachopro/desarrollo/snoopy_oo')
 from lib.snoopy_types import SnoopyDispatch
 from lib.logger import get_logger
 

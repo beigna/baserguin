@@ -9,10 +9,9 @@ import yaml
 from datetime import datetime
 from ConfigParser import NoOptionError, NoSectionError
 
-sys.path.append('/home/nachopro/desarrollo/snoopy_oo')
 from lib.scheduler import Scheduler
 from lib.logger import get_logger
-from lib.editormm import Dispatch
+from lib.editormm.dispatch import Dispatch
 from lib.snoopy_types import SnoopyDispatch
 
 def gen_file(file_path, content):

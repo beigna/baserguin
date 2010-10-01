@@ -4,7 +4,6 @@ import sys
 import os
 import unittest
 
-sys.path.append('/home/nachopro/desarrollo/snoopy_oo')
 from lib.newser import Newser
 from lib.logger import get_logger
 

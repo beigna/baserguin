@@ -4,7 +4,6 @@ import datetime
 import sys
 import os
 
-sys.path.append('/home/nachopro/desarrollo/snoopy_oo')
 from lib.basic_types import Boolean, DateTime, String, Integer
 
 class TestBasicTypes(unittest.TestCase):
