@@ -1,18 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
 
+from lib.constants import DATETIME_FORMAT
 from lib.editormm import EditorMM
+from lib.logger import get_logger
+from lib.pidlocks import lock_pid
 from lib.scheduler import Scheduler
 from lib.snoopy_types import SnoopyDispatch
 
-from lib.logger import get_logger
-from lib.pidlocks import lock_pid
-from lib.constants import DATETIME_FORMAT
 
-import os
+class SnoopySchedulerError(Exception):
+    pass
 
-class SnoopySchedulerError(Exception): pass
-class PidFileExists(Exception): pass
+
+class PidFileExists(Exception):
+    pass
+
 
 log = get_logger('snoopy-scheduler')
 log.info('Initializing...')
@@ -61,8 +65,8 @@ try:
             del(dispatches[i])
 
     for brand_profile in scheduler.brands_profiles:
-        log.info('Looking for schedules %s - %d [%s]' % (brand_profile['brand'],
-            brand_profile['partner_id'],
+        log.info('Looking for schedules %s - %d [%s]'\
+            % (brand_profile['brand'], brand_profile['partner_id'],
             dc[brand_profile['distribution_channel']]))
 
         dispatches.extend(editormm.get_schedules(brand_profile,
@@ -122,4 +126,3 @@ finally:
             'removes it while the scripts is under execution?')
 
     log.info('Done. Fail flag: %s' % (fail_flag))
-

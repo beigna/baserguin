@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import sys
 import os
 import shutil
@@ -17,6 +16,7 @@ from lib.snoopy_types import SnoopyDispatch
 def gen_file(file_path, content):
     open(file_path, 'w').write(content)
 
+
 class SchedulerTest(unittest.TestCase):
     def setUp(self):
         os.makedirs('/tmp/snoopy_xms/scheduler/')
@@ -32,7 +32,8 @@ class SchedulerTest(unittest.TestCase):
         scheduler.load_settings()
 
     def test_load_brands_profiles_ok(self):
-        gen_file('/tmp/snoopy_xms/etc/brands_profiles/ar_personal.conf', '''[General]
+        gen_file('/tmp/snoopy_xms/etc/brands_profiles/ar_personal.conf', 
+            """[General]
 BrandId=00000004
 
 [Sms]
@@ -42,14 +43,15 @@ Partners=4,4015,4022,4025,4017,4026,4027,4037,4044
 Partners=4017,4005
 
 [Wap]
-Partners=4033''')
+Partners=4033""")
         logger = get_logger('Scheduler-Test')
         scheduler = Scheduler(logger)
         scheduler.load_settings()
         scheduler.load_brands_profiles()
 
     def test_load_brands_profiles_fail(self):
-        gen_file('/tmp/snoopy_xms/etc/brands_profiles/ar_personal.conf', '''[General]
+        gen_file('/tmp/snoopy_xms/etc/brands_profiles/ar_personal.conf', 
+            """[General]
 BrandId=00000004
 
 [Sms_cambiado]
@@ -59,15 +61,16 @@ Partners=4,4015,4022,4025,4017,4026,4027,4037,4044
 Partners=4017,4005
 
 [Wap]
-Partners=4033''')
+Partners=4033""")
         logger = get_logger('Scheduler-Test')
         scheduler = Scheduler(logger)
         scheduler.load_settings()
         self.assertRaises(NoSectionError, scheduler.load_brands_profiles)
 
     def test_load_custom_partners_ok(self):
-        gen_file('/tmp/snoopy_xms/etc/custom_partners.conf', '''[butterfly]
-partners=4024,4037,4038,4039,4046''')
+        gen_file('/tmp/snoopy_xms/etc/custom_partners.conf', 
+            """[butterfly]
+partners=4024,4037,4038,4039,4046""")
 
         logger = get_logger('Scheduler-Test')
         scheduler = Scheduler(logger)

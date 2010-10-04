@@ -10,6 +10,5 @@ log.info('I\'m standding up, Sir!')
 
 cfg = get_newser_settings()
 
-
-    daemon = Scheduler('/var/run/snoopy/dnewser.pid', cfg, log)
-    daemon.start()
+daemon = Scheduler('/var/run/snoopy/dnewser.pid', cfg, log)
+daemon.start()

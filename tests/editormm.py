@@ -173,17 +173,21 @@ class EditorMMTest(unittest.TestCase):
         self.assertEqual(a.services, [{'id': 123}])
 
     def test_news_ok(self):
-        data = {
-    'enhanced_message': 'MSN Mapas Zona Oeste:\nAu. del Oeste: Demora 5 min\nAv. Lope de Vega: Normal\nCamino del Buen Ayre: Normal\nAv. Francisco Beiro: Normal\nPte. La Noria: Normal\nAu. Perito Moreno: Normal\nAv. Rivadavia: Normal\nAv. Juan B. Justo: Normal\n',
-    'enhanced_title': 'MSN Mapas Zona Oeste',
-    'id': 752980,
-    'is_extra': 0,
-    'publish_at': '2010-08-31 18:14:30',
-    'short_message': 'MSN Mapas Zona Oeste:\nAu. del Oeste: Demora 5 min\nAu. Perito Moreno: Normal\n',
-    'short_title': '',
-    'title': 'MSN Mapas Zona Oeste',
-    'wap_push_title': '',
-    'wap_push_url': ''}
+        data = {'enhanced_message': "MSN Mapas Zona Oeste:\nAu. del Oeste: "\
+            "Demora 5 min\nAv. Lope de Vega: Normal\nCamino del Buen Ayre: "\
+            "Normal\nAv. Francisco Beiro: Normal\nPte. La Noria: Normal\nAu."\
+            " Perito Moreno: Normal\nAv. Rivadavia: Normal\nAv. "\
+            "Juan B. Justo: Normal\n',
+            'enhanced_title': 'MSN Mapas Zona Oeste',
+            'id': 752980,
+            'is_extra': 0,
+            'publish_at': '2010-08-31 18:14:30',
+            'short_message': 'MSN Mapas Zona Oeste:\nAu. del Oeste: Demora 5"\
+            " min\nAu. Perito Moreno: Normal\n',
+            'short_title': '',
+            'title': 'MSN Mapas Zona Oeste',
+            'wap_push_title': '',
+            'wap_push_url': ''}
 
         a = News(**dict(data))
 
