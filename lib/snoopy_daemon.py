@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
+import signal
 
 from multiprocessing import Queue, Manager
-import signal
 
 from lib.daemon import Daemon
 from lib.file_queue import FileQueue
 
+
 class SnoopyDaemon(Daemon):
+    """
+    """
+
     def __init__(self, pid, cfg, log):
         Daemon.__init__(self, pid)
         self._cfg = cfg
@@ -53,4 +57,3 @@ class SnoopyDaemon(Daemon):
         except Exception, e:
             self._log.excepttion('General failure.')
             raise e
-

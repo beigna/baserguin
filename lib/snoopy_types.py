@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
+import datetime
+
+from uuid import uuid1
 
 from lib.editormm.dispatch import Dispatch
 from lib.constants import STRING, NUMBER, DATETIME_FORMAT
 
-from uuid import uuid1
-import datetime
+
+class DispatchSMS(object):
+    pass
 
 
 class DispatchSMS(object):
     pass
 
-class DispatchSMS(object):
-    pass
 
 class DispatchSMS(object):
     pass
@@ -197,4 +199,3 @@ services: {'id': 873}
 since: '2010-06-25 12:58:01'
 until: '2010-06-25 13:00:02'
 '''
-

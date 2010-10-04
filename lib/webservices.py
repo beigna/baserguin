@@ -401,4 +401,3 @@ def get_from_ws(url, type, username=None, password=None):
         return simplejson.loads(res.read())
     elif type == 'raw':
         return res.read()
-
