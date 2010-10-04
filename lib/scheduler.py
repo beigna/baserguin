@@ -1,17 +1,20 @@
 # -*- coding: utf-8 -*-
-
-import os, sys
+# python imports
+import cPickle
 import glob
+import os
+import simplejson
+import sys
+# python from-imports
 from ConfigParser import ConfigParser
 from datetime import datetime
 from tempfile import mktemp
-import simplejson
+# 3rd party imports
 import yaml
-import cPickle
-
+# local imports
 from lib.constants import DATETIME_FORMAT
 
-class basic_daemon_trucho(object):
+class basic_fake_daemon(object):
     __slots__ = ()
 
     def __init__(self, logger):
@@ -22,7 +25,7 @@ class basic_daemon_trucho(object):
 
 class SchedulerHistoryError(Exception): pass
 
-class Scheduler(basic_daemon_trucho):
+class Scheduler(basic_fake_daemon):
     __slots__ = (
         '_log',
         '_brands_profiles',
