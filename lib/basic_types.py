@@ -1,7 +1,8 @@
-
-import datetime
+# -*- coding: UTF-8 -*-
+from datetime import datetime
 
 EMPTY_VALUES = (None, '')
+
 
 class Boolean(object):
     __slots__ = ('_value',)
@@ -26,6 +27,7 @@ class Boolean(object):
         return self._value
     value = property(get)
 
+
 class DateTime(object):
     __slots__ = ('_value',)
 
@@ -33,10 +35,10 @@ class DateTime(object):
         if value in EMPTY_VALUES:
             raise ValueError('')
 
-        if isinstance(value, datetime.datetime):
+        if isinstance(value, datetime):
             self._value = value
         elif isinstance(value, str):
-            self._value = datetime.datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+            self._value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
         else:
             raise TypeError('')
 
@@ -49,6 +51,7 @@ class DateTime(object):
     def get(self):
         return self._value
     value = property(get)
+
 
 class String(object):
     __slots__ = ('_value',)
@@ -77,6 +80,7 @@ class String(object):
         return self._value
     value = property(get)
 
+
 class Integer(object):
     __slots__ = ('_value',)
 
@@ -92,4 +96,3 @@ class Integer(object):
     def get(self):
         return self._value
     value = property(get)
-

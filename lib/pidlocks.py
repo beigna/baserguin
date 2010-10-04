@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import os
 
 def lock_pid(pid_path):

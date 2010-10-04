@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
-
-import sys
+import Queue
 import os
-from multiprocessing import Process
-import Queue # for Queue.Empty exception
+import sys
+
 from ConfigParser import ConfigParser
+from multiprocessing import Process
+
 import simplejson
 
 from lib.snoopy_types import SnoopyDispatch
 
+
 class Newser(Process):
+    """
+    """
+
     def __init__(self, queue, is_running, process_id, cfg, log):
         Process.__init__(self)
         self._queue = queue
@@ -80,5 +85,4 @@ class Newser(Process):
         channel = editormm.get_channel(dispatch.channel_id)
 
         news = editormm.get_news(dispatch)
-
 

@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
-
-import os
 import glob
+import os
+
 from multiprocessing import Process, Queue
 from time import sleep
 
 class FileQueue(Process):
+    """
+    """
+
     def __init__(self, path_pool, queue, is_running, log):
         Process.__init__(self)
 

@@ -40,7 +40,8 @@ class SnoopyDispatch(Dispatch):
 
     def __init__(self, *args, **kwargs):
         if kwargs.get('schedule'):
-            super(SnoopyDispatch, self).__init__(**dict(kwargs.get('schedule')))
+            super(SnoopyDispatch, self).__init__(
+                **dict(kwargs.get('schedule')))
         else:
             super(SnoopyDispatch, self).__init__(*args, **kwargs)
 
@@ -97,13 +98,13 @@ class SnoopyDispatch(Dispatch):
             'package_id': self.package_id,
             'package_name': self.package_name,
             'partner_id': self.partner_id,
-            'send_time': self.send_time, # Acts as since when look for news
+            'send_time': self.send_time,  # Acts as since when look for news
             'services': self.services,
             #
             'since': None,
             'until': None,
-            'news_outlet': self.news_outlet, # Custom path for some
-                                             # special dispatches.
+            # Custom path for some special dispatches.
+            'news_outlet': self.news_outlet,
             'uuid': self.uuid,
         }
 
@@ -112,7 +113,6 @@ class SnoopyDispatch(Dispatch):
             data['since'] = self.since.strftime(DATETIME_FORMAT)
 
         return data
-
 
     # Getters & Setters
     def get_since(self):
@@ -159,7 +159,6 @@ class SnoopyDispatch(Dispatch):
         self._outlet_file = value
 
     outlet_file = property(get_outlet_file, set_outlet_file)
-
 
 
 '''

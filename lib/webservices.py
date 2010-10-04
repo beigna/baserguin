@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-
 import httplib
-#socket.setdefaulttimeout(20) # La fiesta
 import socket
 
 from base64 import encodestring
@@ -18,11 +16,14 @@ from lib.settings import get_lib_ws_settings
 
 cfg = get_lib_ws_settings()
 
+
 class RestRequestError(Exception):
     pass
 
+
 class GetFromWSError(Exception):
     pass
+
 
 class PlataformError(Exception):
     def __init__(self, message):
@@ -31,16 +32,18 @@ class PlataformError(Exception):
     def __str__(self):
         return repr(self._message)
 
+
 class MasError(PlataformError):
     def __init__(self, message):
         super(MasError, self).__init__(message)
+
 
 class WmpError(PlataformError):
     def __init__(self, message):
         super(WmpError, self).__init__(message)
 
-# ButterFly - Begin
 
+# ButterFly - Begin
 def post_bf_consume(schedule_id, credit_to_consume, date):
     url = '%s/schedules/%d/edit/' % (cfg['butterfly']['url'], schedule_id)
     data = {
@@ -112,8 +115,8 @@ def get_bf_campaign(partner_id):
         cfg['butterfly']['user'], cfg['butterfly']['pass'])
 
 def get_bf_subscriptions(service_id, carrier, distribution_type, zone_id):
-    url = '%s%d/subscriptions/' \
-        '?subscriber__carrier=%s' % (cfg['subman']['url'], service_id, carrier)
+    url = '%s%d/subscriptions/?subscriber__carrier=%s'\
+        % (cfg['subman']['url'], service_id, carrier)
 
     if distribution_type == 'province':
         url = '%s&subscriber__area__city=%d' % (url, zone_id)
@@ -214,7 +217,7 @@ def report_butterfly(uuid, carrier_id, partner_id,
     return rest_request(url, 'POST', yaml.safe_dump(data))
 
 def rest_request(url, method='GET', body='', headers={}):
-    socket.setdefaulttimeout(20) # La fiesta
+    socket.setdefaulttimeout(20)
     original_url = url
     url = urlparse(url)
     if url.scheme == 'http':
@@ -238,7 +241,7 @@ def rest_request(url, method='GET', body='', headers={}):
         raise RestRequestError('Invalid scheme')
 
 def post_to_wap(url, data):
-    socket.setdefaulttimeout(20) # La fiesta
+    socket.setdefaulttimeout(20)
     headers = {
         'Content-Type': 'multipart/form-data; ' \
             'boundary=----------ThIs_Is_tHe_bouNdaRY_$',
@@ -254,7 +257,7 @@ def post_to_wap(url, data):
         return e.read()
 
 def post_to_wmp(url, data, username, password):
-    socket.setdefaulttimeout(20) # La fiesta
+    socket.setdefaulttimeout(20)
     headers = {
         'Content-Type': 'text/xml',
         'id': username,
@@ -274,7 +277,7 @@ def post_to_wmp(url, data, username, password):
                     'message': item.getAttribute('Message')
                 }
     except:
-        # el WMP responde frutaa
+        # el WMP da una respuesta inesperada
         raise WmpError('Unexpected error in WMP\'s response: %s' % (wmp_res))
 
     if res['status'] != 0 or res['message'] != u'OK':
@@ -283,8 +286,8 @@ def post_to_wmp(url, data, username, password):
 
 
 def post_to_mas(url, data, type='xml', username=None, password=None):
-    socket.setdefaulttimeout(20) # La fiesta
-    headers = {'Accept': 'application/%s' % (type),}
+    socket.setdefaulttimeout(20)
+    headers = {'Accept': 'application/%s' % (type), }
 
     if username:
         headers['Authorization'] = 'Basic %s' % (
@@ -330,7 +333,9 @@ def get_channel(channel_id):
     return get_from_ws(url, cfg['channels']['format'],
         cfg['channels']['user'], cfg['channels']['pass'])
 
-def get_news(channel_id, is_extra, until, package_id=None, since=None, limit=1):
+def get_news(channel_id, is_extra, until, 
+        package_id=None, since=None, limit=1):
+
     url = cfg['news']['url']
 
     params = {
@@ -375,8 +380,8 @@ def get_schedules(brand, partner_id, distribution_channel,
         cfg['schedules']['user'], cfg['schedules']['pass'])
 
 def get_from_ws(url, type, username=None, password=None):
-    socket.setdefaulttimeout(20) # La fiesta
-    headers = {'Accept': 'application/%s' % (type),}
+    socket.setdefaulttimeout(20)
+    headers = {'Accept': 'application/%s' % (type), }
 
     if username:
         headers['Authorization'] = 'Basic %s' % (

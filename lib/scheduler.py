@@ -23,7 +23,10 @@ class basic_fake_daemon(object):
     def load_settings(self):
         raise NotImplementedError()
 
-class SchedulerHistoryError(Exception): pass
+
+class SchedulerHistoryError(Exception): 
+    pass
+
 
 class Scheduler(basic_fake_daemon):
     __slots__ = (
@@ -49,7 +52,7 @@ class Scheduler(basic_fake_daemon):
         self._log = logger
         self._start_time = datetime.utcnow()
 
-    def load_settings(self): # has test case
+    def load_settings(self):  # has test case
         try:
             file_path = '%s/conf/scheduler.conf' % (
                 os.path.abspath(sys.path[0]))
@@ -68,15 +71,17 @@ class Scheduler(basic_fake_daemon):
             self._dispatches_outlet_path = \
                 config.get('General', 'DispatchesOutlet')
             self._reports_outlet_path = config.get('General', 'ReportsOutlet')
-            self._brands_profiles_path = config.get('General', 'BrandsProfiles')
-            self._custom_partners_path = config.get('General', 'CustomPartners')
+            self._brands_profiles_path =\
+                config.get('General', 'BrandsProfiles')
+            self._custom_partners_path =\
+                config.get('General', 'CustomPartners')
             self._basedir = config.get('General', 'BaseDir')
 
         except Exception, e:
             self._log.exception('Error load settings.')
             raise e
 
-    def load_brands_profiles(self): # has test case
+    def load_brands_profiles(self):  # has test case
         try:
             self._brands_profiles = []
 
@@ -122,7 +127,7 @@ class Scheduler(basic_fake_daemon):
             self._log.exception('Error load brands profiles.')
             raise e
 
-    def load_custom_partners(self): # has test case
+    def load_custom_partners(self):  # has test case
         try:
             config = ConfigParser()
             config.read('%s/custom_partners.conf' % self._custom_partners_path)
@@ -139,18 +144,18 @@ class Scheduler(basic_fake_daemon):
             self._log.exception('Error load custom partners.')
             raise e
 
-    def check_news_outlet(self, dispatch): # has test case
+    def check_news_outlet(self, dispatch):  # has test case
         if dispatch.partner_id in self._custom_partners:
             dispatch.news_outlet = '%s/news_%s_pool' % (self._basedir,
                 self._custom_partners[dispatch.partner_id])
 
-    def load_last_activity(self): # has test case
+    def load_last_activity(self):  # has test case
         fp = open(self._last_activity_path, 'r')
         last_activity = fp.read().strip()
         fp.close()
         self._last_activity = datetime.strptime(last_activity, DATETIME_FORMAT)
 
-    def save_last_activity(self): # has test case
+    def save_last_activity(self):  # has test case
         fp = open(self._last_activity_path, 'w')
         fp.write(self._start_time.strftime(DATETIME_FORMAT))
         fp.close()
@@ -160,7 +165,7 @@ class Scheduler(basic_fake_daemon):
         fp.write(status)
         fp.close
 
-    def load_history(self): # has test case
+    def load_history(self):  # has test case
         try:
             fp = open(self._dispatches_history_path, 'r')
             self._history = cPickle.load(fp)
@@ -180,7 +185,7 @@ class Scheduler(basic_fake_daemon):
 
         return False
 
-    def is_dispatch_in_history(self, dispatch): # has test case
+    def is_dispatch_in_history(self, dispatch):  # has test case
         if dispatch.is_extra:
             key = '%d-%d' % (dispatch.id, dispatch.news_id)
         else:
@@ -201,7 +206,7 @@ class Scheduler(basic_fake_daemon):
 
         dispatch.outlet_file = filename
 
-    def report(self, dispatch): # has test case
+    def report(self, dispatch):  # has test case
         data = {
             'uuid': dispatch.uuid,
             'partner': dispatch.partner_id,
@@ -219,7 +224,7 @@ class Scheduler(basic_fake_daemon):
 
         os.rename(filename, filename.replace('.tmp', '.go'))
 
-    def add_dispatch_to_history(self, dispatch): # implicit tests
+    def add_dispatch_to_history(self, dispatch):  # implicit tests
         if dispatch.is_extra:
             key = '%d-%d' % (dispatch.id, dispatch.news_id)
         else:
@@ -227,7 +232,7 @@ class Scheduler(basic_fake_daemon):
 
         self._history[key] = self._start_time.strftime('%Y-%m-%d')
 
-    def save_history(self): # has test case
+    def save_history(self):  # has test case
         if not isinstance(self._history, dict):
             raise SchedulerHistoryError('The history is not a dict.')
 
