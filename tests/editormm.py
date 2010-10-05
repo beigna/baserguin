@@ -5,6 +5,8 @@ import os
 import unittest
 from datetime import datetime, timedelta
 
+sys.path.append('/home/nachopro/desarrollo/snoopy_oo')
+
 from lib.editormm.editormm import EditorMM
 from lib.editormm.channel import Channel
 from lib.editormm.attachment import Attachment
@@ -173,11 +175,8 @@ class EditorMMTest(unittest.TestCase):
         self.assertEqual(a.services, [{'id': 123}])
 
     def test_news_ok(self):
-        data = {'enhanced_message': "MSN Mapas Zona Oeste:\nAu. del Oeste: "\
-            "Demora 5 min\nAv. Lope de Vega: Normal\nCamino del Buen Ayre: "\
-            "Normal\nAv. Francisco Beiro: Normal\nPte. La Noria: Normal\nAu."\
-            " Perito Moreno: Normal\nAv. Rivadavia: Normal\nAv. "\
-            "Juan B. Justo: Normal\n',
+        data = {
+            'enhanced_message': 'MSN Mapas Zona Oeste:\nAu. del Oeste: Demora 5 min\nAv. Lope de Vega: Normal\nCamino del Buen Ayre: Normal\nAv. Francisco Beiro: Normal\nPte. La Noria: Normal\nAu. Perito Moreno: Normal\nAv. Rivadavia: Normal\nAv. Juan B. Justo: Normal\n',
             'enhanced_title': 'MSN Mapas Zona Oeste',
             'id': 752980,
             'is_extra': 0,

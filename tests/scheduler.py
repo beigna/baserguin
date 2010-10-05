@@ -8,6 +8,8 @@ import yaml
 from datetime import datetime
 from ConfigParser import NoOptionError, NoSectionError
 
+sys.path.append('/home/nachopro/desarrollo/snoopy_oo')
+
 from lib.scheduler import Scheduler
 from lib.logger import get_logger
 from lib.editormm.dispatch import Dispatch
@@ -32,7 +34,7 @@ class SchedulerTest(unittest.TestCase):
         scheduler.load_settings()
 
     def test_load_brands_profiles_ok(self):
-        gen_file('/tmp/snoopy_xms/etc/brands_profiles/ar_personal.conf', 
+        gen_file('/tmp/snoopy_xms/etc/brands_profiles/ar_personal.conf',
             """[General]
 BrandId=00000004
 
@@ -50,7 +52,7 @@ Partners=4033""")
         scheduler.load_brands_profiles()
 
     def test_load_brands_profiles_fail(self):
-        gen_file('/tmp/snoopy_xms/etc/brands_profiles/ar_personal.conf', 
+        gen_file('/tmp/snoopy_xms/etc/brands_profiles/ar_personal.conf',
             """[General]
 BrandId=00000004
 
@@ -68,7 +70,7 @@ Partners=4033""")
         self.assertRaises(NoSectionError, scheduler.load_brands_profiles)
 
     def test_load_custom_partners_ok(self):
-        gen_file('/tmp/snoopy_xms/etc/custom_partners.conf', 
+        gen_file('/tmp/snoopy_xms/etc/custom_partners.conf',
             """[butterfly]
 partners=4024,4037,4038,4039,4046""")
 
@@ -137,14 +139,13 @@ s.''')
             'package_name': u'Aries',
             'carrier_id': '00000004',
             'package_id': 495L,
-            'send_time': '12:30:00',
+            'send_time': '2010-05-05 12:30:00',
             'services': [],
             'partner_id': 4004,
             'id': 546L,
             'distribution_channel': 1,
             'channel_name': u'Aries',
             'is_extra': False,
-            'news_id': None,
             'channel_id': 66L
         }
         dispatch = Dispatch(**dict(dispatch_dict))
@@ -161,14 +162,13 @@ s.''')
             'package_name': u'Aries',
             'carrier_id': '00000004',
             'package_id': 495L,
-            'send_time': '12:30:00',
+            'send_time': '2010-05-05 12:30:00',
             'services': [],
             'partner_id': 4004,
             'id': 546L,
             'distribution_channel': 1,
             'channel_name': u'Aries',
             'is_extra': False,
-            'news_id': None,
             'channel_id': 66L
         }
         dispatch = Dispatch(**dict(dispatch_dict))
@@ -184,7 +184,6 @@ s.''')
             'package_name': u'Aries',
             'carrier_id': '00000004',
             'package_id': 495L,
-            'send_time': '12:30:00',
             'services': [],
             'partner_id': 4004,
             'id': 546L,
@@ -219,7 +218,6 @@ Partners=4033''')
             'package_name': u'Aries',
             'carrier_id': '00000004',
             'package_id': 495L,
-            'send_time': '12:30:00',
             'services': [],
             'partner_id': 4004,
             'id': 546L,
@@ -253,7 +251,6 @@ Partners=4033''')
             'package_name': u'Aries',
             'carrier_id': '00000004',
             'package_id': 495L,
-            'send_time': '12:30:00',
             'services': [],
             'partner_id': 4004,
             'id': 546L,
@@ -276,14 +273,13 @@ Partners=4033''')
             'package_name': u'Aries',
             'carrier_id': '00000004',
             'package_id': 495L,
-            'send_time': '12:30:00',
+            'send_time': '2010-01-01 12:30:00',
             'services': [],
             'partner_id': 4004,
             'id': 546L,
             'distribution_channel': 1,
             'channel_name': u'Aries',
             'is_extra': False,
-            'news_id': None,
             'channel_id': 66L
         }
         dispatch = Dispatch(**dict(dispatch_dict))
@@ -305,14 +301,13 @@ Partners=4033''')
             'package_name': u'Aries',
             'carrier_id': '00000004',
             'package_id': 495L,
-            'send_time': '12:30:00',
+            'send_time': '2010-05-05 12:30:00',
             'services': [],
             'partner_id': 4004,
             'id': 546L,
             'distribution_channel': 1,
             'channel_name': u'Aries',
             'is_extra': False,
-            'news_id': None,
             'channel_id': 66L
         }
         dispatch = Dispatch(**dict(dispatch_dict))
@@ -336,14 +331,13 @@ partners=4024,4037,4038,4039,4046''')
             'package_name': u'Aries',
             'carrier_id': '00000004',
             'package_id': 495L,
-            'send_time': '12:30:00',
+            'send_time': '2010-09-09 12:30:00',
             'services': [],
             'partner_id': 4046,
             'id': 546L,
             'distribution_channel': 1,
             'channel_name': u'Aries',
             'is_extra': False,
-            'news_id': None,
             'channel_id': 66L
         }
 
@@ -366,14 +360,13 @@ partners=4024,4037,4038,4039,4046''')
             'package_name': u'Aries',
             'carrier_id': '00000004',
             'package_id': 495L,
-            'send_time': '12:30:00',
+            'send_time': '2010-09-09 12:30:00',
             'services': [],
             'partner_id': 4004,
             'id': 546L,
             'distribution_channel': 1,
             'channel_name': u'Aries',
             'is_extra': False,
-            'news_id': None,
             'channel_id': 66L
         }
 
@@ -398,14 +391,13 @@ partners=4024,4037,4038,4039,4046''')
             'package_name': u'Aries',
             'carrier_id': '00000004',
             'package_id': 495L,
-            'send_time': '12:30:00',
+            'send_time': '2010-05-06 12:30:00',
             'services': [],
             'partner_id': 4004,
             'id': 546L,
             'distribution_channel': 1,
             'channel_name': u'Aries',
             'is_extra': False,
-            'news_id': None,
             'channel_id': 66L
         }
         snoopy_dispatch = SnoopyDispatch(schedule=dispatch_dict)

@@ -109,28 +109,17 @@ class EditorMM(object):
             dispatches_list = []
 
             for dispatch_data in dispatches_data:
-                dispatch = Dispatch()
-                dispatch.channel_id = dispatch_data['channel_id']
-                dispatch.channel_name = dispatch_data['channel_name']
-                dispatch.is_extra = is_extra
-                dispatch.id = dispatch_data['id']
-                dispatch.package_id = dispatch_data['package_id']
-                dispatch.package_name = dispatch_data['package_name']
-                dispatch.services = dispatch_data['services']
-
                 if is_extra:
-                    dispatch.carrier_id = dispatch_data['brand']
-                    dispatch.distribution_channel = \
-                        dispatch_data['distribution_channel']
-                    dispatch.partner_id = dispatch_data['partner_id']
-                    # Exclusivo
-                    dispatch.news_id = dispatch_data['news_id']
+                    carrier_id = dispatch_data['brand']
+                    distribution_channel = dispatch_data['distribution_channel']
+                    partner_id = dispatch_data['partner_id']
+                    news_id = dispatch_data['news_id']
+                    send_time = '1900-01-01 00:00:00'
 
                 else:
-                    dispatch.carrier_id = brand_profile['brand']
-                    dispatch.distribution_channel = \
-                        brand_profile['distribution_channel']
-                    dispatch.partner_id = brand_profile['partner_id']
+                    carrier_id = brand_profile['brand']
+                    distribution_channel=brand_profile['distribution_channel']
+                    partner_id = brand_profile['partner_id']
 
                     # TODO modificar algún día el WS para que
                     # no lo mande como objeto
@@ -138,7 +127,25 @@ class EditorMM(object):
                     st = datetime(until.year, until.month, until.day,
                         st.hour, st.minute, st.second)
                     # Exclusivo
-                    dispatch.send_time = st
+                    send_time = st
+                    news_id = 0
+
+                dispatch = Dispatch(
+                    channel_id=dispatch_data['channel_id'],
+                    channel_name=dispatch_data['channel_name'],
+                    is_extra=is_extra,
+                    id=dispatch_data['id'],
+                    package_id=dispatch_data['package_id'],
+                    package_name=dispatch_data['package_name'],
+                    services=dispatch_data['services'],
+                    carrier_id=carrier_id,
+                    distribution_channel=distribution_channel,
+                    partner_id=partner_id,
+                    news_id=news_id,
+                    send_time=send_time
+                )
+
+
 
                 dispatches_list.append(dispatch)
 

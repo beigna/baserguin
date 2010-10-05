@@ -48,51 +48,23 @@ class Dispatch(object):
         return self.__unicode__().encode('utf-8')
 
     def __init__(self, *args, **kwargs):
-        self._carrier_id = None
-        if kwargs.get('carrier_id'):
-            self.carrier_id = kwargs.get('carrier_id')
-
-        self._channel_id = None
-        if kwargs.get('channel_id'):
-            self.channel_id = kwargs.get('channel_id')
-
-        self._channel_name = None
-        if kwargs.get('channel_name'):
-            self.channel_name = kwargs.get('channel_name')
-
-        self._distribution_channel = None
-        if kwargs.get('distribution_channel'):
-            self.distribution_channel = kwargs.get('distribution_channel')
-
-        self._id = None
-        if kwargs.get('id'):
-            self.id = kwargs.get('id')
+        self.carrier_id = kwargs.get('carrier_id')
+        self.channel_id = kwargs.get('channel_id')
+        self.channel_name = kwargs.get('channel_name')
+        self.distribution_channel = kwargs.get('distribution_channel')
+        self.id = kwargs.get('id')
 
         self.is_extra = kwargs.get('is_extra', False)
+        self.news_id = kwargs.get('news_id', 0)
 
-        self._news_id = Integer(0)
-        if kwargs.get('news_id'):
-            self.news_id = kwargs.get('news_id')
+        self.package_id = kwargs.get('package_id')
+        self.package_name = kwargs.get('package_name')
 
-        self._package_id = None
-        if kwargs.get('package_id'):
-            self.package_id = kwargs.get('package_id')
+        self.partner_id = kwargs.get('partner_id')
 
-        self._package_name = None
-        if kwargs.get('package_name'):
-            self.package_name = kwargs.get('package_name')
+        self.send_time = kwargs.get('send_time', '1900-01-01 00:00:00')
 
-        self._partner_id = None
-        if kwargs.get('partner_id'):
-            self.partner_id = kwargs.get('partner_id')
-
-        self._send_time = DateTime('1984-09-28 06:50:00')
-        if kwargs.get('send_time'):
-            self.send_time = kwargs.get('send_time')
-
-        self._services = None
-        if kwargs.get('services'):
-            self.services = kwargs.get('services')
+        self.services = kwargs.get('services')
 
     # Getters & Setters
     def get_carrier_id(self):

@@ -9,7 +9,7 @@ class Boolean(object):
 
     def __init__(self, value):
         if value in EMPTY_VALUES:
-            raise ValueError('')
+            raise ValueError('%s is not a valid Boolean.' % (value))
 
         if value in (True, False):
             self._value = bool(value)
@@ -33,7 +33,7 @@ class DateTime(object):
 
     def __init__(self, value):
         if value in EMPTY_VALUES:
-            raise ValueError('')
+            raise ValueError('%s is not a valid DateTime.' % (value))
 
         if isinstance(value, datetime):
             self._value = value
@@ -58,7 +58,7 @@ class String(object):
 
     def __init__(self, value):
         if value == None:
-            raise ValueError('')
+            raise ValueError('%s is not a valid String.' % (value))
 
         if isinstance(value, str):
             self._value = value.decode('utf-8')
@@ -86,7 +86,7 @@ class Integer(object):
 
     def __init__(self, value):
         if value in EMPTY_VALUES:
-            raise ValueError('')
+            raise ValueError('%s is not a valid Integer.' % (value))
 
         self._value = int(value)
 
