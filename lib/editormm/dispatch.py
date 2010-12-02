@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from simplejson import dumps
+
 from lib.constants import STRING, NUMBER
 from lib.basic_types import Boolean, String, Integer, DateTime
+
 
 class Dispatch(object):
     __slots__ = (
@@ -34,6 +37,22 @@ class Dispatch(object):
             'send_time': self.send_time,
             'services': self.services
         }
+
+    def as_json(self):
+        return dumps({
+            'carrier_id': self.carrier_id,
+            'channel_id': self.channel_id,
+            'channel_name': self.channel_name,
+            'distribution_channel': self.distribution_channel,
+            'id': self.id,
+            'is_extra': self.is_extra,
+            'news_id': self.news_id,
+            'package_id': self.package_id,
+            'package_name': self.package_name,
+            'partner_id': self.partner_id,
+            'send_time': str(self.send_time),
+            'services': self.services
+        })
 
     def __unicode__(self):
         value = u'ID# %d %s - %s' % (self.id, self.package_name,
