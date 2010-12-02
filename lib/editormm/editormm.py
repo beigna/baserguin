@@ -145,8 +145,6 @@ class EditorMM(object):
                     send_time=send_time
                 )
 
-
-
                 dispatches_list.append(dispatch)
 
             return dispatches_list

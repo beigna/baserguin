@@ -11,7 +11,7 @@ class DispatchSMS(object):
     pass
 
 
-class DispatchSMS(object):
+class DispatchMMS(object):
     pass
 
 
