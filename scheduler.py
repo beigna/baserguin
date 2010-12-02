@@ -3,7 +3,7 @@
 import os
 
 from lib.constants import DATETIME_FORMAT
-from lib.editormm import EditorMM
+from lib.editormm.editormm import EditorMM
 from lib.logger import get_logger
 from lib.pidlocks import lock_pid
 from lib.scheduler import Scheduler
@@ -91,14 +91,16 @@ try:
                 schedule_dispatch.until = scheduler.start_time
                 scheduler.check_news_outlet(schedule_dispatch)
 
-                scheduler.add_dispatch_to_history(schedule_dispatch)
                 scheduler.inject_to_queue(schedule_dispatch)
 
             except:
                 log.exception('   Unknow error.')
+                log.debug(schedule_dispatch.as_dict())
                 fail_flag = True
 
             else:
+                scheduler.add_dispatch_to_history(schedule_dispatch)
+
                 os.rename(schedule_dispatch.outlet_file,
                     schedule_dispatch.outlet_file.replace('.tmp', '.go'))
 
