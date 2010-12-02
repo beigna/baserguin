@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
-# python imports
+
 import cPickle
 import glob
 import os
-import simplejson
 import sys
-# python from-imports
+
 from ConfigParser import ConfigParser
 from datetime import datetime
 from tempfile import mktemp
-# 3rd party imports
 import yaml
-# local imports
+
 from lib.constants import DATETIME_FORMAT
 
 class basic_fake_daemon(object):
@@ -24,7 +22,7 @@ class basic_fake_daemon(object):
         raise NotImplementedError()
 
 
-class SchedulerHistoryError(Exception): 
+class SchedulerHistoryError(Exception):
     pass
 
 
@@ -195,7 +193,7 @@ class Scheduler(basic_fake_daemon):
             self._start_time.strftime('%Y-%m-%d')
 
     def inject_to_queue(self, dispatch):
-        data = simplejson.dumps(dispatch.as_dict())
+        data = dispatch.as_json()
 
         filename = '%s/dispatchd_%s_%d.tmp' % (self._dispatches_outlet_path,
             self._start_time.strftime(DATETIME_FORMAT.replace(' ', '_')),
