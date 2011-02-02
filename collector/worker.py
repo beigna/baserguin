@@ -84,10 +84,10 @@ class Collector(Worker):
     def run(self):
         self._logger.info('Ready to work')
 
-        while self._is_running.value:
+        while not self._pipe.closed:
             self._pipe.send('gimme')
 
             if self._pipe.poll():
                 self._logger.info('Charging %s' % (self._pipe.recv()))
 
-            #sleep(1)
+            sleep(1)
