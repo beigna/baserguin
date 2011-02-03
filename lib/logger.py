@@ -1,9 +1,8 @@
 from logging.handlers import SysLogHandler
 import logging
-import os
 
 def get_logger(name='no_name'):
-    logger = logging.getLogger('%s[%s]' % (name, os.getpid()))
+    logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter(

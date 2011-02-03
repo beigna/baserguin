@@ -4,7 +4,80 @@ import string
 from itertools import cycle
 from time import sleep
 
-from lib.worker import Worker
+from lib.worker import Worker, ThreadWorker
+
+
+class QueueManager(ThreadWorker):
+    def __init__(self, *args, **kwargs):
+        super(QueueManager, self).__init__(*args, **kwargs)
+        self._queue = kwargs['queue']
+
+    def run(self):
+        try:
+            self._process()
+        except:
+            self._logger.exception('Thread failure')
+
+    def _process(self):
+        while self._is_running.value:
+            data = {
+                '00000095': range(100),
+                #'00000004': string.ascii_lowercase,
+                #'00000069': ['abc', 'def', 'ghi', 'jkl']
+            }.iteritems()
+
+            for key, elements in data:
+                self._logger.info('Processing queue %s' % (key))
+                for e in elements:
+                    try:
+                        self._queue.put(key, e)
+
+                    except Queue.Full:
+                        self._logger.warning('%s Queue full' % (key))
+                        break
+
+                    else:
+                        self._logger.info('Putting %s' % (e))
+
+        self._logger.info('Goodbye!')
+
+
+class PipeManager(ThreadWorker):
+    def __init__(self, *args, **kwargs):
+        super(PipeManager, self).__init__(*args, **kwargs)
+        self._queue = kwargs['queue']
+        self._pipes = kwargs['pipes']
+
+    def run(self):
+        self._logger.info('Ready to work')
+        try:
+            self._process()
+        except:
+            self._logger.exception('Thread failure')
+
+    def _process(self):
+        while True:
+            if self._queue.qsize():
+                for pipe in self._pipes:
+                    if pipe.poll():
+                        pipe.recv()
+                        self._logger.debug('---------MEPIDIERON')
+
+                        try:
+                            data = self._queue.get()
+                        except Queue.Empty:
+                            self._logger.debug('Empty Queue')
+
+                        else:
+                            self._logger.debug('---------MANDO')
+                            pipe.send(data)
+
+            if not self._is_running.value and not self._queue.qsize():
+                for pipe in self._pipes:
+                    self._logger.debug('Closing worker')
+                    pipe.send('close')
+
+                break
 
 
 class PartedQueue(object):
@@ -15,7 +88,7 @@ class PartedQueue(object):
 
     def put(self, key, value):
         if not self._queues.has_key(key):
-            self._queues[key] = Queue.Queue(maxsize=5)
+            self._queues[key] = Queue.Queue(maxsize=10)
             self._queues_keys.append(key)
             self._iter_queues_keys = cycle(self._queues_keys)
 
@@ -47,54 +120,34 @@ class Director(Worker):
             self._logger.exception('eee')
 
     def _process(self):
-        while True:
-            if self._is_running.value:
-                for key, elements in self._get_queues():
-                    self._logger.info('Processing queue %s' % (key))
-                    for e in elements:
-                        try:
-                            self._queue.put(key, e)
-                        except Queue.Full:
-                            self._logger.warning('%s Queue full' % (key))
-                            break
+        self._threads = []
+        self._threads.append(
+            QueueManager(
+                name='snoopy-director-queman',
+                queue=self._queue,
+                is_running=self._is_running
+            )
+        )
+        self._threads.append(
+            PipeManager(
+                name='snoopy-director-pipman',
+                queue=self._queue,
+                pipes=self._pipes,
+                is_running=self._is_running
+            )
+        )
 
-                        else:
-                            self._logger.info('Putting %s' % (e))
+        [t.start() for t in self._threads]
 
-            self._logger.debug('Queue size: %s ' % (self._queue.qsize()))
+        while self._is_running.value:
+            try:
+                signal.pause()
+            except:
+                continue
 
-            if self._queue.qsize():
-                for pipe in self._pipes:
-                    if pipe.poll():
-                        pipe.recv()
-
-                        try:
-                            data = self._queue.get()
-                        except Queue.Empty:
-                            self._logger.debug('Queue empty')
-                            self._logger.exception('caramba')
-                            pass
-
-                        else:
-                            pipe.send(data)
-
-            if not self._is_running.value and not self._queue.qsize():
-                for pipe in self._pipes:
-                    self._logger.debug('Closing worker')
-                    pipe.send('close')
-
-                break
-
-            sleep(1)
+        [t.join() for t in self._threads]
 
         self._logger.info('Goodbye!')
-
-    def _get_queues(self):
-        return {
-            '00000095': range(10),
-            '00000004': string.ascii_lowercase,
-            '00000069': ['abc', 'def', 'ghi', 'jkl']
-        }.iteritems()
 
     def _refill_queue(self, queue):
         self._logger.info('Queue: %s' % (queue))
@@ -117,14 +170,11 @@ class Collector(Worker):
         while True:
             self._pipe.send('gimme')
 
-            if self._pipe.poll():
-                message = self._pipe.recv()
+            message = self._pipe.recv()
 
-                if message == 'close':
-                    break
-                else:
-                    self._logger.info('Charging %s' % (message))
-
-            sleep(1)
+            if message == 'close':
+                break
+            else:
+                self._logger.info('Charging %s' % (message))
 
         self._logger.info('Goodbye!')

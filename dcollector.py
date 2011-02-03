@@ -24,22 +24,23 @@ class CollectorDaemon(Daemon):
             self._processes = []
             self._collector_pipes = []
 
-            for proc_num in range(2):
+            for proc_num in range(1):
                 p, c = Pipe()
 
                 self._collector_pipes.append(p)
 
                 self._processes.append(
                     Collector(
-                        name='snoopy-collector-collector',
+                        name='snoopy-collector-col',
                         pipe=c,
+                        proc_num=proc_num,
                         is_running=self._is_running
                     )
                 )
 
             self._processes.append(
                 Director(
-                    name='snoopy-collector-director',
+                    name='snoopy-collector-dir',
                     pipes=self._collector_pipes,
                     is_running=self._is_running
                 )
@@ -57,7 +58,7 @@ class CollectorDaemon(Daemon):
 
             [p.join() for p in self._processes]
 
-            self._logger.info('Goodbye!')
+            self._logger.info('Finalised shutdown.')
 
         except:
             self._logger.exception('General failure')
