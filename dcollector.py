@@ -24,7 +24,7 @@ class CollectorDaemon(Daemon):
             self._processes = []
             self._collector_pipes = []
 
-            for proc_num in range(1):
+            for proc_num in range(5):
                 p, c = Pipe()
 
                 self._collector_pipes.append(p)

@@ -1,5 +1,6 @@
 import Queue
 import string
+import select
 
 from itertools import cycle
 from time import sleep
@@ -11,6 +12,7 @@ class QueueManager(ThreadWorker):
     def __init__(self, *args, **kwargs):
         super(QueueManager, self).__init__(*args, **kwargs)
         self._queue = kwargs['queue']
+        self._max_queue_gets_per_time = kwargs['max_queue_gets_per_time']
 
     def run(self):
         try:
@@ -20,15 +22,21 @@ class QueueManager(ThreadWorker):
 
     def _process(self):
         while self._is_running.value:
+        #for asd in range(1):
             data = {
                 '00000095': range(100),
-                #'00000004': string.ascii_lowercase,
-                #'00000069': ['abc', 'def', 'ghi', 'jkl']
+                '00000004': string.ascii_lowercase,
+                '00000069': ['abc', 'def', 'ghi', 'jkl']
             }.iteritems()
 
             for key, elements in data:
                 self._logger.info('Processing queue %s' % (key))
+                gets_count = 0
                 for e in elements:
+                    if gets_count > self._max_queue_gets_per_time:
+                        self._logger.info('Switching queue')
+                        break
+
                     try:
                         self._queue.put(key, e)
 
@@ -38,6 +46,8 @@ class QueueManager(ThreadWorker):
 
                     else:
                         self._logger.info('Putting %s' % (e))
+                        gets_count += 1
+
 
         self._logger.info('Goodbye!')
 
@@ -58,18 +68,21 @@ class PipeManager(ThreadWorker):
     def _process(self):
         while True:
             if self._queue.qsize():
-                for pipe in self._pipes:
+                self._logger.warning(self._queue.qsize())
+
+                active_pipes, wp, we = select.select(self._pipes, [], [])
+
+                for pipe in active_pipes:
                     if pipe.poll():
                         pipe.recv()
-                        self._logger.debug('---------MEPIDIERON')
 
                         try:
                             data = self._queue.get()
                         except Queue.Empty:
                             self._logger.debug('Empty Queue')
+                            break
 
                         else:
-                            self._logger.debug('---------MANDO')
                             pipe.send(data)
 
             if not self._is_running.value and not self._queue.qsize():
@@ -85,18 +98,23 @@ class PartedQueue(object):
         self._queues = {}
         self._queues_keys = []
         self._iter_queues_keys = cycle([])
+        self._max_size_per_queue = kwargs['max_size_per_queue']
 
     def put(self, key, value):
         if not self._queues.has_key(key):
-            self._queues[key] = Queue.Queue(maxsize=10)
+            self._queues[key] = Queue.Queue(maxsize=self._max_size_per_queue)
             self._queues_keys.append(key)
             self._iter_queues_keys = cycle(self._queues_keys)
 
         self._queues[key].put(value, timeout=0)
 
     def get(self):
-        data = self._queues[self._iter_queues_keys.next()].get(timeout=2)
-        return data
+        for i in range(len(self._queues)):
+            queue = self._queues[self._iter_queues_keys.next()]
+            if queue.qsize():
+                return queue.get(timeout=2)
+
+        raise Queue.Empty
 
     def qsize(self):
         count = 0
@@ -109,7 +127,7 @@ class PartedQueue(object):
 class Director(Worker):
     def __init__(self, *args, **kwargs):
         super(Director, self).__init__(*args, **kwargs)
-        self._queue = PartedQueue()
+        self._queue = PartedQueue(max_size_per_queue=25)
         self._pipes = kwargs['pipes']
 
     def run(self):
@@ -125,6 +143,7 @@ class Director(Worker):
             QueueManager(
                 name='snoopy-director-queman',
                 queue=self._queue,
+                max_queue_gets_per_time=10,
                 is_running=self._is_running
             )
         )
