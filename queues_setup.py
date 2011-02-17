@@ -3,7 +3,9 @@ from amqplib import client_0_8 as amqp
 conn = amqp.Connection(host='192.168.23.236', userid='snoopy', password='snoopy', virtual_host='/snoopy')
 chan = conn.channel()
 
-chan.queue_declare(queue='charges', durable=True, exclusive=False, auto_delete=False)
+for carrier in carrier_list:
+    chan.queue_declare(queue=carrier, durable=True, exclusive=False, auto_delete=False)
+
 chan.queue_declare(queue='putter', durable=True, exclusive=False, auto_delete=False)
 
 chan.exchange_declare(exchange='x', type='direct', durable=True, auto_delete=False)
