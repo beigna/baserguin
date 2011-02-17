@@ -21,8 +21,8 @@ class QueueManager(ThreadWorker):
             self._logger.exception('Thread failure')
 
     def _process(self):
-        while self._is_running.value:
-        #for asd in range(1):
+        #while self._is_running.value:
+        for asd in range(1):
             data = {
                 '00000095': range(100),
                 '00000004': string.ascii_lowercase,
