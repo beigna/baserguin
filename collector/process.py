@@ -1,7 +1,10 @@
 from time import time
 
+from amqplib.client_0_8 import Message
+
 from lib.cco import CCOProfile
 from lib.sct import AsyncCharge
+from lib.rabbit_handler import RabbitHandler
 
 
 class CollectorProcess(object):
@@ -68,6 +71,7 @@ class CollectorProcess(object):
         return not self.ignore_charge_result() and self.is_cco_charge_ok()
 
     def enable_dispatch_send(self):
+
         raise NotImplementedError('Programe aqui')
 
 
