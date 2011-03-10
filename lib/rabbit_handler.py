@@ -29,8 +29,11 @@ class RabbitHandler(object):
             self._chan.tx_select()
 
     def disconnect(self):
-        self._chan.close()
-        self._conn.close()
+        try: self._chan.close()
+        except: pass
+        try: self._conn.close()
+        except: pass
+        self._conn = None
 
     def put(self, data, exchange='', routing_key=''):
         if not self._conn:
