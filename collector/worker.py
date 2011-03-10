@@ -2,21 +2,25 @@ import Queue
 import string
 import select
 import msgpack
+from threading import Event
 
 from itertools import cycle
 from time import sleep
-from amqplib.client_0_8 import Message
+from random import random
+from amqplib.client_0_8 import Message, AMQPConnectionException
 
 from lib.worker import Worker, ThreadWorker
 from lib.rabbit_handler import RabbitHandler, RabbitEmpty
 from collector.process import CollectorProcess
 
 
+MAX_QUEUE_GETS_PER_TIME=15
+MAX_SIZE_PER_QUEUE=50
 RABBIT_CFG = {
-    'host': '192.168.23.236',
-    'userid': 'snoopy',
-    'password': 'snoopy',
-    'virtual_host': '/snoopy'
+    'host': '192.168.149.121',
+    'userid': 'guest',
+    'password': 'guest',
+    'virtual_host': '/'
 }
 
 
@@ -49,10 +53,12 @@ class QueueManager(ThreadWorker):
         ]
 
         while self._is_running.value:
-        # ACa se pudre la mondiola
+            queues_puts_sum = 0
+
             for queue in know_queues:
                 self._logger.info('Processing queue %s' % (queue))
 
+                queue_puts = 0
                 for i in range(self._max_queue_gets_per_time):
                     try:
                         data = self._rabbit.get(queue)
@@ -66,20 +72,26 @@ class QueueManager(ThreadWorker):
                         self._logger.warning('%s Queue empty' % (queue))
                         break
 
+                    except AMQPConnectionException:
+                        self._rabbit.disconnect()
+
                     except Exception, e:
                         self._logger.exception('Error %s' % (e))
+                        self._logger.warning('----------------------------')
 
                     else:
-                        self._logger.info('Putting %s' % (type(data)))
                         self._rabbit.ack()
+                        queue_puts += 1
 
-
+                queues_puts_sum += queue_puts
+                self._logger.info('%d elements puts' % (queue_puts))
                 self._logger.info('Switching queue')
 
-            sleep(1)
+            if queues_puts_sum == 0:
+                sleep(5)
 
         self._rabbit.disconnect()
-        self._queueman_is_running = False
+        self._queueman_is_running.clear()
         self._logger.info('Goodbye!')
 
 
@@ -100,9 +112,7 @@ class PipeManager(ThreadWorker):
     def _process(self):
         while True:
             if self._queue.qsize():
-                self._logger.warning(self._queue.qsize())
-
-                active_pipes, wp, we = select.select(self._pipes, [], [])
+                active_pipes, wp, we = select.select(self._pipes, [], [], 2)
 
                 for pipe in active_pipes:
                     if pipe.poll():
@@ -112,19 +122,23 @@ class PipeManager(ThreadWorker):
                             data = self._queue.get()
                         except Queue.Empty:
                             self._logger.debug('Empty Queue')
-                            break
-
+                            pipe.send('empty')
                         else:
                             pipe.send(data)
 
-            if not self._is_running.value \
-            and not self._queue.qsize() \
-            and not self._queueman_is_running:
-                for pipe in self._pipes:
-                    self._logger.debug('Closing worker')
-                    pipe.send('close')
+            else:
+                if (
+                    not self._is_running.value and
+                    not self._queueman_is_running.is_set()
+                ):
+                    for pipe in self._pipes:
+                        self._logger.debug('Closing worker')
+                        pipe.send('close')
 
-                break
+                    break
+
+                else:
+                    sleep(5)
 
 
 class PartedQueue(object):
@@ -161,7 +175,7 @@ class PartedQueue(object):
 class Director(Worker):
     def __init__(self, *args, **kwargs):
         super(Director, self).__init__(*args, **kwargs)
-        self._queue = PartedQueue(max_size_per_queue=5)
+        self._queue = PartedQueue(max_size_per_queue=MAX_SIZE_PER_QUEUE)
         self._pipes = kwargs['pipes']
 
     def run(self):
@@ -172,14 +186,15 @@ class Director(Worker):
             self._logger.exception('eee')
 
     def _process(self):
-        self._queueman_is_running = True
+        self._queueman_is_running = Event()
+        self._queueman_is_running.set()
 
         self._threads = []
         self._threads.append(
             QueueManager(
                 name='snoopy-director-queman',
                 queue=self._queue,
-                max_queue_gets_per_time=5,
+                max_queue_gets_per_time=MAX_QUEUE_GETS_PER_TIME,
                 queueman_is_running = self._queueman_is_running,
                 is_running=self._is_running
             )
@@ -198,16 +213,14 @@ class Director(Worker):
 
         while self._is_running.value:
             try:
-                signal.pause()
+                sleep(1)
+                #signal.pause()
             except:
                 continue
 
         [t.join() for t in self._threads]
 
         self._logger.info('Goodbye!')
-
-    def _refill_queue(self, queue):
-        self._logger.info('Queue: %s' % (queue))
 
 
 class Collector(Worker):
@@ -236,42 +249,52 @@ class Collector(Worker):
 
                     pepe = CollectorProcess(
                         logger=self._logger,
+                        rabbit_cfg=RABBIT_CFG,
                         dispatch_info=data['dispatch_info'],
                         cco_profile=data['cco_profile'],
                         dispatch_content=data.get('dispatch_content')
                     )
 
-                    pepe.cco_charge()
+                except KeyError, TypeError:
+                    self._logger.error('Invalid format')
 
-                    if pepe.is_cco_charge_ok():
-                        self._logger.info('Charge OK')
-                        pepe.club_notify()
+                else:
+                    try:
+                        pepe.cco_charge()
 
-                    else:
-                        self._logger.info('Charge FAIL')
-                        if pepe.is_async_fallbackeable():
-                            pepe.sct_async_charge()
+                        if pepe.is_cco_charge_ok():
+                            self._logger.info('Charge OK')
+                            pepe.club_notify()
 
-                    if pepe.ignore_charge_result():
-                        self._logger.info('Dispatch sended ignoring charge '\
-                            'result.')
-                    else:
-                        if pepe.is_dispatch_sendeable():
-                            pepe.enable_dispatch_send()
                         else:
-                            self._logger.info('Dispatch discarded to %s' % (
-                                pepe.msisdn
-                            ))
+                            self._logger.info('Charge FAIL')
+                            if pepe.is_async_fallbackeable():
+                                pepe.sct_async_charge()
 
-                except:
-                    #Reencolo
-                    rabbit = RabbitHandler(**RABBIT_CFG)
-                    rabbit.reinject(message)
-                    rabbit.disconnect()
+                        if pepe.ignore_charge_result():
+                            self._logger.info('Dispatch sended ignoring '\
+                                'charge result.')
+                        else:
+                            if pepe.is_dispatch_sendeable():
+                                pepe.enable_dispatch_delivery()
+                            else:
+                                self._logger.info('Dispatch discarded ' \
+                                    'to %s' % (pepe.msisdn))
 
-            else:
-                if message == 'close':
-                    break
+                    except:
+                        self._logger.exception('Reinjecting to queue')
+                        rabbit = RabbitHandler(**RABBIT_CFG)
+                        rabbit.reinject(message)
+                        rabbit.disconnect()
 
-            sleep(1)
+                finally:
+                    self._logger.info('Done.')
+
+            elif message == 'empty':
+                sleep(5)
+
+            elif message == 'close':
+                break
+
+            sleep(random())
         self._logger.info('Goodbye!')
