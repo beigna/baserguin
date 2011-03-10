@@ -30,4 +30,4 @@ class AsyncCharge(object):
         }
 
         req = BasicHttp('http://sct.cyclelogic.com/tracker/cco_async_charge/')
-        req.POST(data=data, headers={'User-Agent': 'SnoopyOO'})
+        a = req.POST(data=data, headers={'User-Agent': 'SnoopyOO'}, wanted_status=[201,])

@@ -1,22 +1,32 @@
 from amqplib import client_0_8 as amqp
+import glob
+from ConfigParser import ConfigParser
 
-conn = amqp.Connection(host='192.168.23.236', userid='snoopy', password='snoopy', virtual_host='/snoopy')
+#conn = amqp.Connection(host='192.168.149.140', userid='snoopy', password='Sn00py_P012', virtual_host='/snoopy')
+conn = amqp.Connection(host='192.168.149.140')
 chan = conn.channel()
 
-for carrier in carrier_list:
-    chan.queue_declare(queue=carrier, durable=True, exclusive=False, auto_delete=False)
+brands_dir = '/etc/opt/cyclelogic/snoopy_xms/brands_profiles/*.conf'
+config = ConfigParser()
+charge_queue_name_list = []
 
-chan.queue_declare(queue='putter', durable=True, exclusive=False, auto_delete=False)
+for current_file in glob.glob(brands_dir):
+    config.read(current_file)
+    charge_queue_name_list.append('charges_%s' % config.get('General', 'BrandId'))
 
 chan.exchange_declare(exchange='x', type='direct', durable=True, auto_delete=False)
 
-chan.queue_bind(queue='charges', exchange='x', routing_key='charges')
-chan.queue_bind(queue='putter', exchange='x', routing_key='putter')
+for charge_queue_name in charge_queue_name_list:
+    print charge_queue_name
+    chan.queue_declare(queue=charge_queue_name, durable=True, exclusive=False, auto_delete=False)
+    chan.queue_bind(queue=charge_queue_name, exchange='x',
+            routing_key=charge_queue_name)
 
-#msg = amqp.Message('hola1', delivery_mode=2)
-#chan.basic_publish(msg, exchange='gilada', routing_key='pepe')
-#chan.basic_publish(msg, exchange='', routing_key='')
+chan.queue_declare(queue='stats', durable=True, exclusive=False, auto_delete=False)
+chan.queue_bind(queue='stats', exchange='x', routing_key='stats')
+
+chan.queue_declare(queue='putter', durable=True, exclusive=False, auto_delete=False)
+chan.queue_bind(queue='putter', exchange='x', routing_key='putter')
 
 chan.close()
 conn.close()
-
