@@ -50,10 +50,15 @@ class CollectorProcess(object):
         return self._cco['is_sync'] and self._cco['async_fallback']
 
     def sct_async_charge(self):
+        fallback_product_id = self._cco['product_id']
+
+        if self._cco['fallback_product_id']:
+            fallback_product_id = self._cco['fallback_product_id']
+
         async_charge = AsyncCharge(
             brand_id = self._cco['brand_id'],
             partner_id = self._cco['partner_id'],
-            product_id = self._cco['fallback_product_id'],
+            product_id = fallback_product_id,
             application_id = self._cco['application_id'],
             msisdn = self.msisdn,
             is_sync = False,
@@ -63,7 +68,8 @@ class CollectorProcess(object):
             service_id = self._cco['service_id']
         )
 
-        self._logger.info('Making async charge fallback')
+        self._logger.info('Making async charge fallback Product ID: %s' % (
+            fallback_product_id))
         async_charge.charge()
 
     def ignore_charge_result(self):
