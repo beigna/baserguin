@@ -71,3 +71,15 @@ class RabbitHandler(object):
 
     def rollback(self):
         self._chan._tx_rollback()
+
+    def discard(self):
+        self._chan.basic_reject(
+            delivery_tag=self._msg.delivery_tag,
+            requeue=False
+        )
+
+    def reject(self):
+        self._chan.basic_reject(
+            delivery_tag=self._msg.delivery_tag,
+            requeue=True
+        )
