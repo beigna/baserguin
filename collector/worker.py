@@ -14,24 +14,15 @@ from lib.rabbit_handler import RabbitHandler, RabbitEmpty
 from collector.process import CollectorProcess
 
 
-MAX_QUEUE_GETS_PER_TIME=15
-MAX_SIZE_PER_QUEUE=50
-RABBIT_CFG = {
-    'host': '192.168.149.121',
-    'userid': 'guest',
-    'password': 'guest',
-    'virtual_host': '/'
-}
-
-
 class QueueManager(ThreadWorker):
     def __init__(self, *args, **kwargs):
         super(QueueManager, self).__init__(*args, **kwargs)
         self._queue = kwargs['queue']
         self._max_queue_gets_per_time = kwargs['max_queue_gets_per_time']
         self._queueman_is_running = kwargs['queueman_is_running']
+        self._rabbit_cfg = kwargs['rabbit_cfg']
 
-        self._rabbit = RabbitHandler(**RABBIT_CFG)
+        self._rabbit = RabbitHandler(**self._rabbit_cfg)
 
     def run(self):
         try:
@@ -65,6 +56,7 @@ class QueueManager(ThreadWorker):
                         self._queue.put(queue, data)
 
                     except Queue.Full:
+                        self._rabbit.reject()
                         self._logger.warning('%s Queue full' % (queue))
                         break
 
@@ -175,7 +167,10 @@ class PartedQueue(object):
 class Director(Worker):
     def __init__(self, *args, **kwargs):
         super(Director, self).__init__(*args, **kwargs)
-        self._queue = PartedQueue(max_size_per_queue=MAX_SIZE_PER_QUEUE)
+        self._cfg = kwargs['cfg']
+        self._queue = PartedQueue(
+            max_size_per_queue=self._cfg['max_size_per_queue']
+        )
         self._pipes = kwargs['pipes']
 
     def run(self):
@@ -194,7 +189,8 @@ class Director(Worker):
             QueueManager(
                 name='snoopy-director-queman',
                 queue=self._queue,
-                max_queue_gets_per_time=MAX_QUEUE_GETS_PER_TIME,
+                max_queue_gets_per_time=self._cfg['max_queue_gets_per_time'],
+                rabbit_cfg=self._cfg['rabbit_cfg']
                 queueman_is_running = self._queueman_is_running,
                 is_running=self._is_running
             )
@@ -227,6 +223,7 @@ class Collector(Worker):
     def __init__(self, *args, **kwargs):
         super(Collector, self).__init__(*args, **kwargs)
         self._pipe = kwargs['pipe']
+        self._rabbit_cfg = kwargs['rabbit_cfg']
 
     def run(self):
         self._logger.info('Ready to work')
@@ -249,7 +246,7 @@ class Collector(Worker):
 
                     pepe = CollectorProcess(
                         logger=self._logger,
-                        rabbit_cfg=RABBIT_CFG,
+                        rabbit_cfg=self._rabbit_cfg,
                         dispatch_info=data['dispatch_info'],
                         cco_profile=data['cco_profile'],
                         dispatch_content=data.get('dispatch_content')
@@ -283,7 +280,7 @@ class Collector(Worker):
 
                     except:
                         self._logger.exception('Reinjecting to queue')
-                        rabbit = RabbitHandler(**RABBIT_CFG)
+                        rabbit = RabbitHandler(**self._rabbit_cfg)
                         rabbit.reinject(message)
                         rabbit.disconnect()
 
