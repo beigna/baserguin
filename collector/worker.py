@@ -190,7 +190,7 @@ class Director(Worker):
                 name='snoopy-director-queman',
                 queue=self._queue,
                 max_queue_gets_per_time=self._cfg['max_queue_gets_per_time'],
-                rabbit_cfg=self._cfg['rabbit_cfg']
+                rabbit_cfg=self._cfg['rabbit_cfg'],
                 queueman_is_running = self._queueman_is_running,
                 is_running=self._is_running
             )
