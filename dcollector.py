@@ -5,11 +5,13 @@ import os
 from collector.worker import Director, Collector
 from lib.daemon import Daemon
 from lib.logger import get_logger
+from lib.load_conf import load_conf
 
 
 class CollectorDaemon(Daemon):
-    def __init__(self, pid_path):
-        Daemon.__init__(self, pid_path)
+    def __init__(self, cfg):
+        self._cfg = cfg
+        Daemon.__init__(self, self._cfg['pid_path'])
         self._logger = get_logger('snoopy-collector')
 
     def stop(self, *args, **kargs):
@@ -24,7 +26,7 @@ class CollectorDaemon(Daemon):
             self._processes = []
             self._collector_pipes = []
 
-            for proc_num in range(10):
+            for proc_num in range(self._cfg['workers_num']):
                 p, c = Pipe()
 
                 self._collector_pipes.append(p)
@@ -42,6 +44,7 @@ class CollectorDaemon(Daemon):
                 Director(
                     name='snoopy-collector-dir',
                     pipes=self._collector_pipes,
+                    cfg=self._cfg,
                     is_running=self._is_running
                 )
             )
@@ -64,5 +67,7 @@ class CollectorDaemon(Daemon):
             self._logger.exception('General failure')
 
 if __name__ == '__main__':
-    d = CollectorDaemon('/tmp/collector.pid')
+    conf = load_conf('conf/collector.json')
+
+    d = CollectorDaemon(conf)
     d.start()
