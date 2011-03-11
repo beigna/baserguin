@@ -8,9 +8,10 @@ from datetime import datetime
 from tempfile import mkdtemp
 
 FILES = []
-EXT = ('py', 'conf')
+EXT = ('py', 'json')
 NO_UPLOAD = ('fabfile.py')
 PRESERVE_FILES = (
+    'conf/collector.json',
 )
 
 APP_NAME = 'snoopy_oo'
