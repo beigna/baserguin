@@ -1,6 +1,7 @@
 from multiprocessing import Value, Pipe
-import signal
 import os
+import signal
+import sys
 
 from collector.worker import Director, Collector
 from lib.daemon import Daemon
@@ -36,6 +37,7 @@ class CollectorDaemon(Daemon):
                         name='snoopy-collector-col',
                         pipe=c,
                         proc_num=proc_num,
+                        rabbit_cfg=self._cfg['rabbit_cfg'],
                         is_running=self._is_running
                     )
                 )
@@ -67,7 +69,7 @@ class CollectorDaemon(Daemon):
             self._logger.exception('General failure')
 
 if __name__ == '__main__':
-    conf = load_conf('conf/collector.json')
+    conf = load_conf('%s/conf/collector.json' % (os.path.abspath(sys.path[0])))
 
     d = CollectorDaemon(conf)
     d.start()
