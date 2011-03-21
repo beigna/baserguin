@@ -21,6 +21,7 @@ class QueueManager(ThreadWorker):
         self._max_queue_gets_per_time = kwargs['max_queue_gets_per_time']
         self._queueman_is_running = kwargs['queueman_is_running']
         self._rabbit_cfg = kwargs['rabbit_cfg']
+        self._know_queues = kwargs['know_queues']
 
         self._rabbit = RabbitHandler(**self._rabbit_cfg)
 
@@ -31,22 +32,11 @@ class QueueManager(ThreadWorker):
             self._logger.exception('Thread failure')
 
     def _process(self):
-        know_queues = [
-            'charges_00000069',
-            'charges_00000045',
-            'charges_00000036',
-            'charges_00000051',
-            'charges_00000057',
-            'charges_00000004',
-            'charges_00000003',
-            'charges_00000095',
-            'charges_00000059',
-        ]
 
         while self._is_running.value:
             queues_puts_sum = 0
 
-            for queue in know_queues:
+            for queue in self._know_queues:
                 self._logger.info('Processing queue %s' % (queue))
 
                 queue_puts = 0
@@ -191,6 +181,7 @@ class Director(Worker):
                 queue=self._queue,
                 max_queue_gets_per_time=self._cfg['max_queue_gets_per_time'],
                 rabbit_cfg=self._cfg['rabbit_cfg'],
+                know_queues=self._cfg['know_queues'],
                 queueman_is_running = self._queueman_is_running,
                 is_running=self._is_running
             )
@@ -224,6 +215,7 @@ class Collector(Worker):
         super(Collector, self).__init__(*args, **kwargs)
         self._pipe = kwargs['pipe']
         self._rabbit_cfg = kwargs['rabbit_cfg']
+        self._rabbit_sc_cfg = kwargs['rabbit_sc_cfg']
 
     def run(self):
         self._logger.info('Ready to work')
@@ -247,6 +239,7 @@ class Collector(Worker):
                     pepe = CollectorProcess(
                         logger=self._logger,
                         rabbit_cfg=self._rabbit_cfg,
+                        rabbit_sc_cfg=self._rabbit_sc_cfg,
                         dispatch_info=data['dispatch_info'],
                         cco_profile=data['cco_profile'],
                         dispatch_content=data.get('dispatch_content')
@@ -267,6 +260,9 @@ class Collector(Worker):
                             self._logger.info('Charge FAIL')
                             if pepe.is_async_fallbackeable():
                                 pepe.sct_async_charge()
+
+                        self._logger.info('Reporting to Snoopy Charges.')
+                        pepe.report_charge()
 
                         if pepe.ignore_charge_result():
                             self._logger.info('Dispatch sended ignoring '\

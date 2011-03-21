@@ -38,6 +38,7 @@ class CollectorDaemon(Daemon):
                         pipe=c,
                         proc_num=proc_num,
                         rabbit_cfg=self._cfg['rabbit_cfg'],
+                        rabbit_sc_cfg=self._cfg['rabbit_snoopy_charges_cfg'],
                         is_running=self._is_running
                     )
                 )

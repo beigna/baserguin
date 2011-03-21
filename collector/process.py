@@ -1,6 +1,8 @@
 from time import time
+from datetime import datetime
 
 from amqplib.client_0_8 import Message
+import msgpack
 
 from lib.cco import CCOProfile
 from lib.sct import AsyncCharge
@@ -12,6 +14,7 @@ class CollectorProcess(object):
     def __init__(self, *args, **kwargs):
         self._logger = kwargs['logger']
         self._rabbit_cfg = kwargs['rabbit_cfg']
+        self._rabbit_sc_cfg = kwargs['rabbit_sc_cfg']
         self._dispatch_info = kwargs['dispatch_info']
         self._cco = kwargs['cco_profile']
         self._dispatch_content = kwargs.get('dispatch_content', None)
@@ -39,6 +42,23 @@ class CollectorProcess(object):
         request_lenght = time() - start_time
 
         self._logger.info('Charge request time: [%.2fs]' % (request_lenght))
+
+    def report_charge(self):
+        try:
+            data = msgpack.dumps({
+                'charge_id': self._cco['charge_id'],
+                'cco_transaction_id': self._cco_result['transaction'],
+                'cco_response': self._cco_result['response'],
+                'cco_ws_response_date': datetime.utcnow().strftime(
+                    '%Y-%m-%d %H:%M:%S')
+            })
+
+            rabbit = RabbitHandler(**self._rabbit_sc_cfg)
+            rabbit.put(data=data, exchange='x', routing_key='charesp')
+            rabbit.disconnect()
+
+        except Exception, e:
+            self._logger.exception('Error on make report.')
 
     def is_cco_charge_ok(self):
         return self._cco_result['response'] == 0
