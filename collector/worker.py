@@ -249,33 +249,36 @@ class Collector(Worker):
                     self._logger.error('Invalid format')
 
                 else:
+                    charge_id = data['cco_profile']['charge_id']
                     try:
                         pepe.cco_charge()
 
                         if pepe.is_cco_charge_ok():
-                            self._logger.info('Charge OK')
+                            self._logger.info('[%s] Charge OK' % (charge_id))
                             pepe.club_notify()
 
                         else:
-                            self._logger.info('Charge FAIL')
+                            self._logger.info('[%s] Charge FAIL' % (charge_id))
                             if pepe.is_async_fallbackeable():
                                 pepe.sct_async_charge()
 
-                        self._logger.info('Reporting to Snoopy Charges.')
+                        self._logger.info('[%s] Reporting to Snoopy ' \
+                            'Charges.' % (charge_id))
                         pepe.report_charge()
 
                         if pepe.ignore_charge_result():
-                            self._logger.info('Dispatch sended ignoring '\
-                                'charge result.')
+                            self._logger.info('[%s] Dispatch sended ' \
+                                'ignoring charge result.' % (charge_id))
                         else:
                             if pepe.is_dispatch_sendeable():
                                 pepe.enable_dispatch_delivery()
                             else:
-                                self._logger.info('Dispatch discarded ' \
-                                    'to %s' % (pepe.msisdn))
+                                self._logger.info('[%s] Dispatch discarded ' \
+                                    'to %s' % (charge_id, pepe.msisdn))
 
                     except:
-                        self._logger.exception('Reinjecting to queue')
+                        self._logger.exception('[%s] Reinjecting to queue' % (
+                            charge_id))
                         rabbit = RabbitHandler(**self._rabbit_cfg)
                         rabbit.reinject(message)
                         rabbit.disconnect()
@@ -289,5 +292,4 @@ class Collector(Worker):
             elif message == 'close':
                 break
 
-            sleep(random())
         self._logger.info('Goodbye!')

@@ -33,15 +33,17 @@ class CollectorProcess(object):
 
         self.msisdn = self._cco['destinations'][0]
 
-        self._logger.info('Charging Brand %s; ANI: %s; Product ID: %s' % (
-            self._cco['brand_id'], self.msisdn, self._cco['product_id']
-        ))
+        self._logger.info('[%s] Charging Brand %s; ANI: %s; Product ID: %s' % (
+            self._cco['charge_id'], self._cco['brand_id'], self.msisdn,
+            self._cco['product_id']))
 
         start_time = time()
         self._cco_result = self._cco_charge.charge(self.msisdn)
         request_lenght = time() - start_time
 
-        self._logger.info('Charge request time: [%.2fs]' % (request_lenght))
+        self._logger.info('[%s] Charge request time: [%.2fs]; %s Resp: %s' % (
+            self._cco['charge_id'], request_lenght, self._cco['brand_id'],
+            self._cco_result['response']))
 
     def report_charge(self):
         try:
@@ -58,13 +60,15 @@ class CollectorProcess(object):
             rabbit.disconnect()
 
         except Exception, e:
-            self._logger.exception('Error on make report.')
+            self._logger.exception('[%s] Error on make report.' % (
+                self._cco['charge_id']))
 
     def is_cco_charge_ok(self):
         return self._cco_result['response'] == 0
 
     def club_notify(self):
-        self._logger.warning('progr a menme!!!!')
+        self._logger.warning('[%s] progr a menme!!!!' % (
+            self._cco['charge_id']))
 
     def is_async_fallbackeable(self):
         return self._cco['is_sync'] and self._cco['async_fallback']
@@ -88,8 +92,8 @@ class CollectorProcess(object):
             service_id = self._cco['service_id']
         )
 
-        self._logger.info('Making async charge fallback Product ID: %s' % (
-            fallback_product_id))
+        self._logger.info('[%s] Making async charge fallback Product ' \
+            'ID: %s' % (self._cco['charge_id'], fallback_product_id))
         async_charge.charge()
 
     def ignore_charge_result(self):
@@ -99,7 +103,8 @@ class CollectorProcess(object):
         return not self.ignore_charge_result() and self.is_cco_charge_ok()
 
     def enable_dispatch_delivery(self):
-        self._logger.info('Delivering dispatch')
+        self._logger.info('[%s] Delivering dispatch' % (
+            self._cco['charge_id']))
 
         data = {
             'dispatch_info': self._dispatch_info,
