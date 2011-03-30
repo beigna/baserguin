@@ -9,6 +9,7 @@ class AsyncCharge(object):
         self._product_id = kwargs['product_id']
         self._application_id = kwargs['application_id']
         self._msisdn = kwargs['msisdn']
+        self._subscription_id = kwargs['subscription_id']
         self._is_sync = kwargs['is_sync']
         self._username = kwargs['username']
         self._password = kwargs['password']
@@ -22,6 +23,7 @@ class AsyncCharge(object):
             'product_id': self._product_id,
             'application_id': self._application_id,
             'msisdn': self._msisdn,
+            'subscription_id': self._subscription_id,
             'is_sync': self._is_sync,
             'username': self._username,
             'password': self._password,

@@ -47,14 +47,20 @@ class CCOProfile(object):
         if kwargs.get('url'):
             self.url = kwargs.get('url')
 
-    def charge(self, ani):
+    def charge(self, ani, subscription_id=None):
         socket.setdefaulttimeout(60)
         server = xmlrpclib.Server(self.url)
 
         try:
-            res = server.credit.charge(self.username, self.password,
-                self.product_id, self.partner_id, self.application_id,
-                self.brand_id, ani, self.is_sync)
+            if subscription_id:
+                res = server.credit.charge(self.username, self.password,
+                    self.product_id, self.partner_id, self.application_id,
+                    self.brand_id, ani, self.is_sync, subscription_id)
+
+            else:
+                res = server.credit.charge(self.username, self.password,
+                    self.product_id, self.partner_id, self.application_id,
+                    self.brand_id, ani, self.is_sync)
 
             return res
 

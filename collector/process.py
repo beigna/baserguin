@@ -31,14 +31,16 @@ class CollectorProcess(object):
             url=self._cco['url']
         )
 
-        self.msisdn = self._cco['destinations'][0]
+        self.msisdn = self._cco['destination']['msisdn']
+        self.subscription_id = self._cco['destination']['id']
 
         self._logger.info('[%s] Charging Brand %s; ANI: %s; Product ID: %s' % (
             self._cco['charge_id'], self._cco['brand_id'], self.msisdn,
             self._cco['product_id']))
 
         start_time = time()
-        self._cco_result = self._cco_charge.charge(self.msisdn)
+        self._cco_result = self._cco_charge.charge(self.msisdn,
+            self.subscription_id)
         request_lenght = time() - start_time
 
         self._logger.info('[%s] Charge request time: [%.2fs]; %s Resp: %s' % (
@@ -85,6 +87,7 @@ class CollectorProcess(object):
             product_id = fallback_product_id,
             application_id = self._cco['application_id'],
             msisdn = self.msisdn,
+            subscription_id = self.subscription_id,
             is_sync = False,
             username = self._cco['username'],
             password = self._cco['password'],
