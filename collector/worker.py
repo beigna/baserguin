@@ -242,6 +242,7 @@ class Collector(Worker):
                         rabbit_sc_cfg=self._rabbit_sc_cfg,
                         dispatch_info=data['dispatch_info'],
                         cco_profile=data['cco_profile'],
+                        notification=data.get('notification'),
                         dispatch_content=data.get('dispatch_content')
                     )
 
@@ -255,7 +256,8 @@ class Collector(Worker):
 
                         if pepe.is_cco_charge_ok():
                             self._logger.info('[%s] Charge OK' % (charge_id))
-                            pepe.club_notify()
+                            if data.get('notification'):
+                                pepe.notify()
 
                         else:
                             self._logger.info('[%s] Charge FAIL' % (charge_id))

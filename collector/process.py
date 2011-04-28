@@ -2,6 +2,7 @@ from time import time
 from datetime import datetime
 
 from amqplib.client_0_8 import Message
+from basic_http import BasicHttp
 import msgpack
 
 from lib.cco import CCOProfile
@@ -17,6 +18,7 @@ class CollectorProcess(object):
         self._rabbit_sc_cfg = kwargs['rabbit_sc_cfg']
         self._dispatch_info = kwargs['dispatch_info']
         self._cco = kwargs['cco_profile']
+        self._notification = kwargs.get('notification', None)
         self._dispatch_content = kwargs.get('dispatch_content', None)
 
     def cco_charge(self):
@@ -68,9 +70,29 @@ class CollectorProcess(object):
     def is_cco_charge_ok(self):
         return self._cco_result['response'] == 0
 
-    def club_notify(self):
-        self._logger.warning('[%s] progr a menme!!!!' % (
-            self._cco['charge_id']))
+    def notify(self):
+        try:
+            self._logger.info('[%s] Notifying %s %s %s' % (
+                self._cco['charge_id'],
+                self._cco['brand_id'],
+                self._cco['destination']['msisdn'],
+                self._cco['service_id']))
+
+            data = {
+                'msisdn': self._cco['destination']['msisdn'],
+                'service_id' : self._cco['service_id'],
+                'brand_id' : self._cco['brand_id']
+            }
+
+            req = BasicHttp(self._notification['url'])
+            req.POST(data=data)
+
+        except:
+            self._logger.exception('[%s] Unable to notify %s %s %s' % (
+                self._cco['charge_id'],
+                self._cco['brand_id'],
+                self._cco['destination']['msisdn'],
+                self._cco['service_id']))
 
     def is_async_fallbackeable(self):
         return self._cco['is_sync'] and self._cco['async_fallback']
