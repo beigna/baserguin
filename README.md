@@ -8,9 +8,10 @@ Snoopy OO (cuyo nombre clave es Baserguín, en honor a Juan Pablo Baserga) es la
 
 Snoopy era un sistema multiproceso condenado a correr en un solo servidor, pero replicable. Baserguín mejora esto y añade muchas características.
 
-Snoopy OO no se encuentra completo, sólo implementa una de las 5 patas que maneja Snoopy.
+Snoopy OO no se encuentra completo, sólo implementa una de los 5 pilares que maneja Snoopy, pero es productivo.
 
 Para los nostálgicos y llorones (como yo), Snoopy OO jamás será terminado ya que:
+
 1. No trabajo en la empresa donde se producía.
 2. Dicha empresa ha sido absorvida y sus plataformas deprecadas.
 
