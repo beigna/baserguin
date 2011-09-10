@@ -1,0 +1,33 @@
+{
+    "pid_path": "/var/run/snoopy_oo/collector.pid",
+    "workers_num": 24,
+
+    "max_queue_gets_per_time": 15,
+    "max_size_per_queue": 50,
+
+    "rabbit_cfg": {
+        "host": "192.168.150.121",
+        "userid": "snoopy",
+        "password": "snoopy",
+        "virtual_host": "/snoopy"
+    },
+
+    "rabbit_snoopy_charges_cfg": {
+        "host": "192.168.150.120",
+        "userid": "snoopy_charges",
+        "password": "123456",
+        "virtual_host": "/snoopy_charges"
+    },
+
+    "know_queues": [
+        "charges_00000069",
+        "charges_00000045",
+        "charges_00000036",
+        "charges_00000051",
+        "charges_00000057",
+        "charges_00000004",
+        "charges_00000003",
+        "charges_00000095",
+        "charges_00000059"
+    ]
+}
