@@ -15,7 +15,7 @@ Para los nostálgicos y llorones (como yo), Snoopy OO jamás será terminado ya 
 1. No trabajo en la empresa donde se producía.
 2. Dicha empresa ha sido absorvida y sus plataformas deprecadas.
 
-Si bien es algo egocéntrico, es una gran pieza de software que diseñé junto a Damián Lacapra con asistencia de Ángel Velázquez y se basa en mi diseño anterior, que a su vez tiene mucho de lo que hicimos hace años junto a Ángel Freire.
+Si bien es algo egocéntrico, es una gran pieza de software que diseñé junto a Damián Lacapra con asistencia de Ángel Velázquez y se basa en el diseño anterior que hice con la ayuda de Pablo Moreno, que a su vez tiene mucho de lo que hicimos hace años junto a Ángel Freire.
 
 Dejo esto aquí para consulta y referencia sobre el uso de threading y processing en Python ;)
 
